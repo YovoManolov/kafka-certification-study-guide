@@ -32,7 +32,7 @@ Welcome to the Kafka Certification Mastery repository. Below is a comprehensive 
 
 ## Supplementary Resources
 
-- [**Kafka Internal Architecture**](chapters/kafka-certification-mastery-internal-architecture.md)
+- [**Kafka Internal Architecture**](supplementary-resources/kafka-certification-mastery-internal-architecture.md)
     - A deep dive into internals.
 - [**Kafka Developer Certification Mock Exam**](kafka_developer_certification_mock_exam.md)
     - Practice questions for CCDAK/CCAAK certification.
