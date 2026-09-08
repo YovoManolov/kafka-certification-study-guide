@@ -572,13 +572,19 @@ Always understand the desired recovery semantics before executing it.
 Useful for smoke tests:
 
 ``` bash
-bin/kafka-console-producer.sh   --bootstrap-server localhost:9092   --topic orders
+bin/kafka-console-producer.sh \  
+  --bootstrap-server localhost:9092 \  
+  --topic orders
 ```
 
 For key/value testing:
 
 ``` bash
-bin/kafka-console-producer.sh   --bootstrap-server localhost:9092   --topic orders   --property parse.key=true   --property key.separator=:
+bin/kafka-console-producer.sh   \
+  --bootstrap-server localhost:9092 \  
+  --topic orders   \
+  --property parse.key=true \   
+  --property key.separator=:
 ```
 
 Then:
@@ -604,19 +610,27 @@ It is not a replacement for a production producer.
 Basic consumption:
 
 ``` bash
-bin/kafka-console-consumer.sh   --bootstrap-server localhost:9092   --topic orders
+bin/kafka-console-consumer.sh   
+  --bootstrap-server localhost:9092   
+  --topic orders
 ```
 
 From the beginning:
 
 ``` bash
-bin/kafka-console-consumer.sh   --bootstrap-server localhost:9092   --topic orders   --from-beginning
+bin/kafka-console-consumer.sh   
+  --bootstrap-server localhost:9092   
+  --topic orders   
+  --from-beginning
 ```
 
 With a group:
 
 ``` bash
-bin/kafka-console-consumer.sh   --bootstrap-server localhost:9092   --topic orders   --group debug-orders
+bin/kafka-console-consumer.sh   
+  --bootstrap-server localhost:9092   
+  --topic orders   
+  --group debug-orders
 ```
 
 ### Important
@@ -636,7 +650,12 @@ Authorization administration uses `kafka-acls`.
 Example:
 
 ``` bash
-bin/kafka-acls.sh   --bootstrap-server localhost:9092   --add   --allow-principal User:alice   --operation Read   --topic orders
+bin/kafka-acls.sh   
+  --bootstrap-server localhost:9092   
+  --add   
+  --allow-principal User:alice   
+  --operation Read   
+  --topic orders
 ```
 
 Depending on the security configuration, ACLs can govern resources such
@@ -732,17 +751,17 @@ The certification skill is recognizing the Kafka object being changed.
 A safe conceptual workflow is:
 
 ``` text
-Identify broker replicas
-        ↓
-Generate reassignment plan
-        ↓
-Move replicas
-        ↓
-Verify ISR/distribution
-        ↓
-Stop broker
-        ↓
-Verify cluster health
+  Identify broker replicas
+          ↓
+ Generate reassignment plan
+          ↓
+     Move replicas
+          ↓
+  Verify ISR/distribution
+          ↓
+      Stop broker
+          ↓
+  Verify cluster health
 ```
 
 The exact operational workflow depends on the Kafka deployment and
@@ -760,16 +779,27 @@ Modern Kafka uses KRaft rather than ZooKeeper.
 
 Conceptually:
 
-``` text
-        Controller 1
-             Controller 2 ---- Metadata quorum
-             /
-        Controller 3
-
-              ↓
-
-          Kafka cluster
-        /      |           Broker   Broker   Broker
+``` mermaid
+flowchart TB
+    subgraph Controllers["Controller Quorum (KRaft)"]
+        direction LR
+        C1["Controller 1"] --- C2["Controller 2"] --- C3["Controller 3"]
+    end
+    
+    Controllers -->|"Metadata sync<br/>(Raft consensus)"| Brokers
+    
+    subgraph Brokers["Kafka Brokers"]
+        direction LR
+        B1["Broker 1"] --- B2["Broker 2"] --- B3["Broker 3"]
+    end
+    
+    classDef controller fill:#4A90D9,color:#fff,stroke:#2C5F8A,stroke-width:2px
+    classDef broker fill:#2ECC71,color:#fff,stroke:#1A8A4A,stroke-width:2px
+    classDef cluster fill:#F39C12,color:#fff,stroke:#B8770E,stroke-width:2px,stroke-dasharray:5 5
+    
+    class C1,C2,C3 controller
+    class B1,B2,B3 broker
+    class Controllers,Brokers cluster
 ```
 
 The controller quorum manages Kafka metadata.
