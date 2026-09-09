@@ -33,26 +33,38 @@ By the end of this chapter, you should be able to:
 
 Kafka administration is about managing several layers:
 
-``` text
-Cluster
- ├── Controllers / KRaft metadata quorum
- ├── Brokers
- │    ├── Broker configuration
- │    ├── Listeners
- │    ├── Storage
- │    └── Replication
- │
- ├── Topics
- │    ├── Partitions
- │    ├── Replicas
- │    ├── ISR
- │    └── Topic configuration
- │
- └── Consumer Groups
-      ├── Members
-      ├── Assignments
-      ├── Offsets
-      └── Lag
+``` mermaid
+flowchart LR
+    Cluster["Kafka Cluster"]
+    
+    Cluster --> Controllers["Controllers<br/>(KRaft Metadata Quorum)"]
+    Cluster --> Brokers["Brokers"]
+    Cluster --> Topics["Topics"]
+    Cluster --> ConsumerGroups["Consumer Groups"]
+    
+    Brokers --> BrokerConfig["Broker Configuration"]
+    Brokers --> Listeners["Listeners"]
+    Brokers --> Storage["Storage"]
+    Brokers --> Replication["Replication"]
+    
+    Topics --> Partitions["Partitions"]
+    Topics --> Replicas["Replicas"]
+    Topics --> ISR["ISR"]
+    Topics --> TopicConfig["Topic Configuration"]
+    
+    ConsumerGroups --> Members["Members"]
+    ConsumerGroups --> Assignments["Assignments"]
+    ConsumerGroups --> Offsets["Offsets"]
+    ConsumerGroups --> Lag["Lag"]
+    
+    classDef cluster fill:#FF4757,color:#FFF,stroke:#C0392B,stroke-width:3px,font-weight:bold
+    classDef mainNode fill:#2ED593,color:#000,stroke:#1A8A4A,stroke-width:2px,font-weight:bold
+    classDef subNode fill:#FFA502,color:#000,stroke:#D68910,stroke-width:2px,font-weight:bold
+    classDef leafNode fill:#3742FA,color:#FFF,stroke:#1E2A8A,stroke-width:2px,font-weight:bold
+    
+    class Cluster cluster
+    class Controllers,Brokers,Topics,ConsumerGroups mainNode
+    class BrokerConfig,Listeners,Storage,Replication,Partitions,Replicas,ISR,TopicConfig,Members,Assignments,Offsets,Lag leafNode
 ```
 
 The key certification skill is:
