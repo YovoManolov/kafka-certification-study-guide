@@ -2,9 +2,9 @@
 
 ## Kafka Developer (CCDAK) & Kafka Administrator (CCAAK) Certification Book
 
-> **Certification focus:** TCP/IP, DNS, listeners, advertised listeners, 
-> Kafka protocols, TLS, SASL, authentication, authorization boundaries, 
-> internal/external connectivity, NAT/load balancers, containers, 
+> **Certification focus:** TCP/IP, DNS, listeners, advertised listeners,
+> Kafka protocols, TLS, SASL, authentication, authorization boundaries,
+> internal/external connectivity, NAT/load balancers, containers,
 > cloud networking, packet-flow troubleshooting, and certification scenarios.
 
 ---
