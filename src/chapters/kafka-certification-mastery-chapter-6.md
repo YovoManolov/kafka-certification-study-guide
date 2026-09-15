@@ -1,4 +1,4 @@
-# Chapter 6 — Kafka Storage, Replication, ISR and Fault Tolerance
+# Chapter 6 — Kafka Storage, Replication, ISR and Fault Tolerance, Durability, ISR, High Watermark, and Failure scenarios
 
 > Certification track: Kafka Developer + Kafka Administrator  
 > Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition

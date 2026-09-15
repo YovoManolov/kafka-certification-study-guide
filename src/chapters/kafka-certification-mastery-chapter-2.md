@@ -1,42 +1,4 @@
-# Chapter 2 — Kafka Architecture Deep Dive
-
-> Certification track: CCDAK + CCAAK  
-> Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
-
----
-
-## Table of Contents
-
-- [Chapter 2 — Kafka Architecture Deep Dive](#chapter-2-kafka-architecture-deep-dive)
-- [1. The Kafka Architecture at a Glance](#1-the-kafka-architecture-at-a-glance)
-  - [Certification Rule](#certification-rule)
-  - [Application data](#application-data)
-  - [Cluster metadata](#cluster-metadata)
-  - [Certification Trap](#certification-trap)
-  - [Clean/safe behavior](#cleansafe-behavior)
-  - [Unclean election](#unclean-election)
-  - [Certification Rule](#certification-rule)
-  - [Controller leader](#controller-leader)
-  - [Partition leader](#partition-leader)
-  - [Answer](#answer)
-  - [Answer](#answer)
-  - [Answer](#answer)
-  - [Answer](#answer)
-  - [Answer](#answer)
-  - [Answer](#answer)
-  - [Answer](#answer)
-  - [Answer](#answer)
-  - [Step 1](#step-1)
-  - [Step 2](#step-2)
-  - [Step 3](#step-3)
-  - [Step 4](#step-4)
-  - [Step 5](#step-5)
-  - [Step 6](#step-6)
-  - [Step 7](#step-7)
-- [Chapter 3 — Topics, Partitions, Offsets and Log Internals](#kafka-certification-mastery-chapter-3.md)
-
----
-## Chapter 2 — Kafka Architecture Deep Dive
+# Chapter 2 — Kafka Architecture KRaft, Control Plane vs Data Plane, and Broker internals Deep Dive
 
 > Certification track: CCDAK + CCAAK  
 > Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
@@ -86,7 +48,7 @@ Kafka has two major conceptual planes:
 ┌─────────────────────────────────────────────┐
 │                 CONTROL PLANE               │
 │                                             │
-│       KRaft / Controllers / Metadata       │
+│       KRaft / Controllers / Metadata        │
 │                                             │
 ├─────────────────────────────────────────────┤
 │                  DATA PLANE                 │

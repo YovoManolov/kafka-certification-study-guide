@@ -1010,6 +1010,156 @@ reassignment
 
 Therefore application ingress alone is not enough for network sizing.
 
+### 59.1. Producer Ingress
+
+Producer ingress is the rate at which records arrive at partition leaders.
+
+For example:
+
+```text
+producers -> partition leaders
+                 500 MB/s
+```
+
+This is only the first part of the network model. The broker must also send
+records to followers and, later, to consumers.
+
+### 59.2. Replication Traffic
+
+For a topic with replication factor 3, each record is written to one leader
+and replicated to two followers.
+
+Conceptually, if the incoming write rate is `500 MB/s`:
+
+```text
+producer ingress       = 500 MB/s
+leader-to-follower     = approximately 1,000 MB/s additional
+```
+
+The simplified broker-side traffic associated with the write can therefore be
+approximately:
+
+```text
+500 MB/s x replication factor 3 = 1,500 MB/s of copy traffic
+```
+
+This is a planning model, not an exact wire-level measurement. Compression,
+protocol behavior, batching, acknowledgment settings, and replica placement
+affect the actual rate. The important certification principle is:
+
+> Replication factor increases network and disk work; it does not provide fault tolerance for free.
+
+### 59.3. Consumer Egress
+
+Consumers create another network flow from brokers to clients.
+
+If consumers read the same `500 MB/s` written by producers, the cluster must
+also support roughly `500 MB/s` of consumer egress, distributed according to
+partition leadership and consumer assignments.
+
+A simplified aggregate model is:
+
+```text
+producer ingress
++ replication traffic
++ consumer egress
++ protocol overhead
+```
+
+The traffic is not necessarily balanced evenly across brokers. A broker that
+leads many busy partitions can become network-bound while the cluster average
+looks healthy.
+
+### 59.4. Recovery and Reassignment Traffic
+
+Recovery after a broker failure and partition reassignment add temporary
+broker-to-broker traffic.
+
+Examples include:
+
+- rebuilding a replica on a replacement broker
+- moving replicas after adding a broker
+- restoring replicas after a disk failure
+- catching up a follower that left the ISR
+
+This traffic competes with normal producers, consumers, and replication. A
+cluster that is sufficient during normal operation may still fail to recover
+quickly if it has no recovery bandwidth headroom.
+
+### 59.5. Cross-Zone Traffic
+
+When replicas or clients are spread across availability zones, traffic may
+cross zone boundaries. This can introduce:
+
+- additional latency
+- cross-zone bandwidth cost
+- dependence on inter-zone links
+- a more complicated failure domain
+
+Replica placement should be considered together with listener configuration,
+network topology, and the required availability guarantees.
+
+### 59.6. Network Capacity Planning Example
+
+Suppose a broker handles:
+
+```text
+producer ingress = 100 MB/s
+replication factor = 3
+consumer egress = 100 MB/s
+```
+
+A simplified model for that broker is:
+
+```text
+producer ingress       = 100 MB/s
+follower replication   = 200 MB/s additional
+consumer egress        = 100 MB/s
+-----------------------------------
+approximate total     = 400 MB/s
+```
+
+This estimate still needs headroom for:
+
+- protocol and encryption overhead
+- traffic bursts
+- uneven partition leadership
+- replica recovery
+- reassignment
+- broker or link failure
+
+Do not size the network exactly at the calculated average. Measure peak rates
+and validate the result with a production-like load test.
+
+### 59.7. What to Monitor
+
+Inspect network capacity at both broker and infrastructure levels:
+
+- bytes in and bytes out per broker
+- network utilization and packet errors
+- request latency and request queueing
+- replication lag and ISR changes
+- consumer lag
+- recovery and reassignment throughput
+- cross-zone traffic
+
+Compare per-broker values, not only cluster-wide averages. A single overloaded
+broker can cause partition-specific failures even when aggregate utilization
+appears acceptable.
+
+### 59.8. Network Capacity Troubleshooting
+
+When network utilization is high:
+
+1. Identify whether ingress, egress, replication, or recovery is responsible.
+2. Find the brokers and partitions carrying the traffic.
+3. Check for uneven leadership or consumer assignments.
+4. Check packet loss, errors, latency, and advertised listener reachability.
+5. Throttle reassignment or recovery when it is competing with production traffic.
+6. Add capacity or rebalance placement only after identifying the bottleneck.
+
+> High network utilization is a symptom. Determine which traffic flow is consuming the capacity before changing Kafka settings.
+
 ## 60. Partition Capacity
 
 Too many partitions can increase:

@@ -1,9 +1,7 @@
-# Chapter 5 — Consumers and Consumer Groups Deep Dive
+# Chapter 5 — Consumers and Consumer Groups Deep Dive Group coordination, Rebalancing, and Offset management
 
 > Certification track: Kafka Developer + Kafka Administrator  
 > Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
-
-# Apache Kafka Certification Mastery
 
 ## Table of Contents
 

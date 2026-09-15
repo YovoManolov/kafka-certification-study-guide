@@ -1,4 +1,4 @@
-# Chapter 4 — Producers Deep Dive
+# Chapter 4 — Producers Idempotence, Transactions, and Performance tuning Deep Dive
 
 > Certification track: Kafka Developer + Kafka Administrator  
 > Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
