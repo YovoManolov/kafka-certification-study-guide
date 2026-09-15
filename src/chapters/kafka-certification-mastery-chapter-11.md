@@ -1,10 +1,8 @@
 # Chapter 11 — Kafka Streams Deep Dive
 
-```text
-Certification focus: This chapter covers Kafka Streams from fundamentals through production architecture, 
-stateful processing, repartitioning, joins, windowing, state stores, fault tolerance, exactly-once processing, 
-scaling, and troubleshooting.
-```
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
 
 ## 1. Learning Objectives
 

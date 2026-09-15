@@ -1,10 +1,12 @@
 # Chapter 1 — Kafka Mental Model
 
-> Certification track: CCDAK + CCAAK  
-> Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
 
 ---
-## Table of Contents
+
+## 1. Chapter Objectives
 
 - [Kafka Mental Model](#kafka-mental-model)
 - [1. What Kafka Actually Is](#1-what-kafka-actually-is)
@@ -19,7 +21,7 @@
 - [7. Brokers](#7-brokers)
 - [8. Replication](#8-replication)
 - [9. Leaders and Followers](#9-leaders-and-followers)
-- [10. ISR — In-Sync Replicas](#10-isr-in-sync-replicas)
+- [10. ISR—In-Sync Replicas](#10-isr-in-sync-replicas)
 - [11. Producers](#11-producers)
 - [12. Partitioning](#12-partitioning)
 - [Certification Rule #2](#certification-rule-2)
@@ -33,7 +35,6 @@
 - [19. Retention](#19-retention)
 - [20. Consumer Position vs Committed Offset](#20-consumer-position-vs-committed-offset)
 - [21. Kafka's Fundamental Data Flow](#21-kafkas-fundamental-data-flow)
-- [Next Chapter](#next-chapter)
 
 ---
 
@@ -385,7 +386,7 @@ Followers replicate the leader's log.
 
 ---
 
-## 10. ISR — In-Sync Replicas
+## 10. ISR In-Sync Replicas
 
 ISR means:
 

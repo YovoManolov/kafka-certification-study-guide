@@ -1,7 +1,8 @@
 # Chapter 2 — Kafka Architecture KRaft, Control Plane vs Data Plane, and Broker internals Deep Dive
 
-> Certification track: CCDAK + CCAAK  
-> Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
 
 ---
 

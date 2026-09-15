@@ -1,7 +1,8 @@
 # Chapter 3 — Topics, Partitions, Offsets and Log Internals
 
-> Certification track: CCDAK + CCAAK  
-> Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
 
 ---
 

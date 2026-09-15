@@ -1,11 +1,9 @@
 # Chapter 12 — Kafka Performance, Tuning & Capacity Planning
 
-```text
-Certification focus: This chapter covers the performance model of Apache Kafka, 
-producer/consumer tuning, broker configuration, batching, compression, replication, partitions, 
-JVM and disk considerations, capacity planning, benchmarking, bottleneck diagnosis, 
-and certification-style scenarios.
-```
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
+
 ## 1. Learning Objectives
 
 By the end of this chapter, you should be able to:

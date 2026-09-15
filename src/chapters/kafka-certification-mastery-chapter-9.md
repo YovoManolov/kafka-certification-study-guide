@@ -1,7 +1,6 @@
 # Chapter 9 — Kafka Security Deep Dive
 
 > Kafka Developer & Administrator Certification Preparation
-
 > Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
 > operational examples, troubleshooting scenarios, and exam traps.
 

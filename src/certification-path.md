@@ -1,4 +1,5 @@
 # Part I — Kafka Fundamentals
+
 ## Module 1 — Meet Kafka
 
 Based primarily on Definitive Guide Chapter 1.
@@ -44,6 +45,7 @@ You will master:
 - Understand HA
 
 # Part II — Kafka Architecture Deep Dive
+
 ## Module 2 — Topics, Partitions and Replication
 
 This is where we'll go much deeper than the book's introductory explanation.

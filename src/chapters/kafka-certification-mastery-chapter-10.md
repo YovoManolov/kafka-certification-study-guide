@@ -1,20 +1,8 @@
 # Chapter 10 — Kafka Connect Deep Dive
 
-This chapter focuses on Kafka Connect:
-
-- architecture
-- connectors
-- workers
-- tasks
-- converters
-- Single Message Transforms
-- error handling
-- offsets
-- internal topics,
-- distributed mode
-- security
-- operations
-- certification-style questions.
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
 
 ## 1. Chapter Objectives
 

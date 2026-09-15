@@ -1,11 +1,9 @@
 # Chapter 21 — Kafka Certification Scenario Drills: Developer + Administrator
 
-> Certification focus: CCDAK + CCAAK\
-> Level: Senior / Production\
-> Objective: Move from memorizing Kafka concepts and commands to solving
-> realistic certification scenarios under time pressure.
-
-------------------------------------------------------------------------
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
+---
 
 ## 21.1 Learning Objectives
 

@@ -1,11 +1,8 @@
 # Chapter 13 — Kafka Monitoring, Metrics & Troubleshooting Deep Dive
 
-```text
-Certification focus: This chapter covers Kafka observability, JMX metrics, broker/producer/consumer metrics, 
-consumer lag, replication health, JVM monitoring, request latency, 
-disk and network monitoring, alerting, troubleshooting methodology, Prometheus/Grafana concepts, a
-nd certification-style incident scenarios.
-```
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
 
 ## 1. Learning Objectives
 

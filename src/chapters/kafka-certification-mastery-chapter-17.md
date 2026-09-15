@@ -1,12 +1,8 @@
 # Chapter 17 — Kafka CLI, AdminClient & Certification Command Mastery
 
-### Kafka Developer & Administrator Certification Preparation
-
-> Certification track: Kafka Developer + Kafka Administrator  
-> Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
->
-> A practical command and administration reference focused on turning
-> Kafka concepts into operational skills.
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
 
 ## 1. Learning Objectives
 

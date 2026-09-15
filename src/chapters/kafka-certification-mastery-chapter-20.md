@@ -1,15 +1,10 @@
 # Chapter 20 — Kafka Security Deep Dive: TLS, SASL, ACLs, Authentication & Authorization
 
-## Kafka Developer (CCDAK) & Kafka Administrator (CCAAK) Certification Book
-
-> **Certification focus:** TCP/IP, DNS, listeners, advertised listeners,
-> Kafka protocols, TLS, SASL, authentication, authorization boundaries,
-> internal/external connectivity, NAT/load balancers, containers,
-> cloud networking, packet-flow troubleshooting, and certification scenarios.
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
 
 ---
-
-------------------------------------------------------------------------
 
 ## 19.1 Learning Objectives
 

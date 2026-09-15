@@ -1,10 +1,8 @@
 # Chapter 18 — Kafka Production Configuration, Tuning & Configuration Reference
 
-## Kafka Developer (CCDAK) & Kafka Administrator (CCAAK) Certification Book
-
-> **Certification focus:** production configuration, 
-> performance tuning, capacity planning, reliability, networking, 
-> dynamic configuration, and scenario-based troubleshooting.
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
 
 ---
 

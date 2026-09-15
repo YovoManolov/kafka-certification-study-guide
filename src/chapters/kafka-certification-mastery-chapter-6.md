@@ -1,7 +1,8 @@
 # Chapter 6 — Kafka Storage, Replication, ISR and Fault Tolerance, Durability, ISR, High Watermark, and Failure scenarios
 
-> Certification track: Kafka Developer + Kafka Administrator  
-> Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
+> Kafka Developer & Administrator Certification Preparation
+> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
+> operational examples, troubleshooting scenarios, and exam traps.
 
 ## Table of Contents
 
