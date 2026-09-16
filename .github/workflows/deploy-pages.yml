@@ -28,19 +28,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cargo/bin/mdbook-mermaid
-          key: mdbook-mermaid-v0.13.0
+          key: mdbook-mermaid-v0.17.0
       
       - name: Install Mermaid preprocessor
         if: steps.cache-mermaid.outputs.cache-hit != 'true'
         run: |
-          cargo install mdbook-mermaid --locked --version 0.13.0
+          cargo install mdbook-mermaid --locked --version 0.17.0
 
       - name: Install Mermaid preprocessor for mdbook
         run: mdbook-mermaid install src
 
       - name: Build
         run: mdbook build
-        
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
