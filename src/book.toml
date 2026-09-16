@@ -5,4 +5,9 @@ language = "en"
 
 [output.html]
 additional-css = ["theme/exam.css"]
-additional-js = ["src/exam.js"]
+additional-js = ["src/exam.js", "mermaid.min.js", "mermaid-init.js"]
+
+[preprocessor]
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
