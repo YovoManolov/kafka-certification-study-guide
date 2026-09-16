@@ -1,4 +1,4 @@
-# Chapter 15 — Kafka Transactions & Exactly-Once Semantics Deep Dive
+# Chapter 16 — Kafka Transactions & Exactly-Once Semantics Deep Dive
 
 > Kafka Developer & Administrator Certification Preparation
 > Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,

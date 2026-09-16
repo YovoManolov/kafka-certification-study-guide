@@ -1,4 +1,4 @@
-# Chapter 1 — Kafka Mental Model
+# Chapter 1 — Kafka Mental Model & Fundamentals
 
 > Kafka Developer & Administrator Certification Preparation
 > Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
@@ -37,8 +37,6 @@
 - [21. Kafka's Fundamental Data Flow](#21-kafkas-fundamental-data-flow)
 
 ---
-
-## Kafka Mental Model
 
 > Certification track: CCDAK + CCAAK  
 > Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition

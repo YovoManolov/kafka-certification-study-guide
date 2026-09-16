@@ -872,7 +872,7 @@ This is important for workloads such as:
 
 ---
 
-# Certification Scenarios
+## Certification Scenarios
 
 ## Scenario 1 — Consumers vs Partitions
 
@@ -1013,7 +1013,7 @@ D. `consumer.instance`
 
 ---
 
-# Administrator Perspective
+## Administrator Perspective
 
 Inspect a consumer group with:
 
@@ -1048,7 +1048,7 @@ Partition 2 has the largest lag and should be investigated.
 
 ---
 
-# Diagnosing Consumer Lag
+## Diagnosing Consumer Lag
 
 If lag continuously increases, investigate:
 
@@ -1085,7 +1085,7 @@ Other services
 
 ---
 
-# Consumer Group Diagnostic Model
+## Consumer Group Diagnostic Model
 
 ```text
                  Consumer Lag
@@ -1122,7 +1122,7 @@ High?
 
 ---
 
-# High-Value Configuration Table
+## High-Value Configuration Table
 
 | Configuration | Meaning |
 |---|---|
@@ -1140,7 +1140,7 @@ High?
 
 ---
 
-# Certification Mental Model
+## Certification Mental Model
 
 When you see a consumer-group question, ask:
 
@@ -1168,7 +1168,7 @@ When you see a consumer-group question, ask:
 
 ---
 
-# Chapter Cheat Sheet
+## Chapter Cheat Sheet
 
 ### Consumer Group
 
@@ -1284,7 +1284,7 @@ Answer these without looking at the chapter:
 
 ---
 
-# Chapter 7 Summary
+## Chapter 7 Summary
 
 Consumer groups are central to Kafka scalability and fault tolerance.
 

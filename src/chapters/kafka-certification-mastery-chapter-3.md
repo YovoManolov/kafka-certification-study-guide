@@ -54,7 +54,7 @@ not as a single queue.
 
 ---
 
-# 2. Topic vs Partition
+## 2. Topic vs Partition
 
 A topic is a logical name.
 
@@ -82,7 +82,7 @@ This sentence is worth memorizing.
 
 ---
 
-# 3. Partition Ordering
+## 3. Partition Ordering
 
 Suppose:
 
@@ -131,7 +131,7 @@ Therefore:
 
 ---
 
-# 4. Why Partitions Exist
+## 4. Why Partitions Exist
 
 Partitions solve two major problems:
 
@@ -161,7 +161,7 @@ Multiple consumers can process partitions concurrently.
 
 ---
 
-# 5. Partition Count
+## 5. Partition Count
 
 Suppose:
 
@@ -187,7 +187,7 @@ This is one of the most frequently tested Kafka concepts.
 
 ---
 
-# 6. Can Partition Count Be Increased?
+## 6. Can Partition Count Be Increased?
 
 Yes.
 
@@ -224,7 +224,7 @@ This can affect ordering for keyed records.
 
 ---
 
-# 7. Why Increasing Partitions Can Break Ordering
+## 7. Why Increasing Partitions Can Break Ordering
 
 Suppose a producer uses a key:
 
@@ -260,7 +260,7 @@ Therefore:
 
 ---
 
-# 8. Record Structure
+## 8. Record Structure
 
 A Kafka record can contain:
 
@@ -293,7 +293,7 @@ trace-id=abc123
 
 ---
 
-# 9. Offset
+## 9. Offset
 
 Every record in a partition has an offset.
 
@@ -312,7 +312,7 @@ The offset is the record's position in that partition log.
 
 ---
 
-# 10. Offset Scope
+## 10. Offset Scope
 
 This is a major certification trap.
 
@@ -342,7 +342,7 @@ offset
 
 ---
 
-# 11. Offset Is Not a Database ID
+## 11. Offset Is Not a Database ID
 
 Do not think of the offset as:
 
@@ -378,7 +378,7 @@ Both partitions have offset 4.
 
 ---
 
-# 12. Log End Offset
+## 12. Log End Offset
 
 Suppose:
 
@@ -413,7 +413,7 @@ Consumer lag calculations rely on the relationship between the consumer's positi
 
 ---
 
-# 13. Consumer Position vs Committed Offset
+## 13. Consumer Position vs Committed Offset
 
 Suppose:
 
@@ -464,7 +464,7 @@ This distinction becomes critical in consumer failure scenarios.
 
 ---
 
-# 14. The "Next Record" Semantics
+## 14. The "Next Record" Semantics
 
 If a consumer commits:
 
@@ -482,7 +482,7 @@ Certification questions often exploit this distinction.
 
 ---
 
-# 15. Partition Log
+## 15. Partition Log
 
 A partition is an ordered append-only log.
 
@@ -504,7 +504,7 @@ Records are appended rather than randomly inserted.
 
 ---
 
-# 16. Log Segments
+## 16. Log Segments
 
 A partition is divided into segments.
 
@@ -535,7 +535,7 @@ This allows Kafka to manage old data efficiently.
 
 ---
 
-# 17. Active Segment
+## 17. Active Segment
 
 A partition normally has one active segment receiving new records.
 
@@ -564,7 +564,7 @@ This matters for:
 
 ---
 
-# 18. Segment Rolling
+## 18. Segment Rolling
 
 Suppose:
 
@@ -593,7 +593,7 @@ This distinction matters.
 
 ---
 
-# 19. Retention
+## 19. Retention
 
 Kafka retention determines how long data remains available.
 
@@ -624,7 +624,7 @@ Delete eligible segments
 
 ---
 
-# 20. Time-Based Retention
+## 20. Time-Based Retention
 
 Suppose:
 
@@ -646,7 +646,7 @@ Important:
 
 ---
 
-# 21. Size-Based Retention
+## 21. Size-Based Retention
 
 Suppose:
 
@@ -660,7 +660,7 @@ This is useful when storage capacity is the primary constraint.
 
 ---
 
-# 22. Retention Is Not Consumer Acknowledgment
+## 22. Retention Is Not Consumer Acknowledgment
 
 Traditional queue thinking:
 
@@ -686,7 +686,7 @@ This is a crucial architectural difference.
 
 ---
 
-# 23. Log Deletion
+## 23. Log Deletion
 
 Kafka generally deletes eligible **log segments**, rather than individually removing arbitrary records from the middle of an active log.
 
@@ -705,7 +705,7 @@ Segment-based deletion is efficient.
 
 ---
 
-# 24. Log Compaction
+## 24. Log Compaction
 
 Retention and compaction are different.
 
@@ -737,7 +737,7 @@ The exact physical cleanup is asynchronous.
 
 ---
 
-# 25. Why Compaction Exists
+## 25. Why Compaction Exists
 
 Compaction is useful for topics representing state.
 
@@ -760,7 +760,7 @@ rather than an ever-growing history.
 
 ---
 
-# 26. Tombstones
+## 26. Tombstones
 
 A tombstone is a record with:
 
@@ -790,7 +790,7 @@ Tombstones are therefore essential when using Kafka as a compacted state log.
 
 ---
 
-# 27. Compaction Does Not Mean Immediate Deletion
+## 27. Compaction Does Not Mean Immediate Deletion
 
 This is important.
 
@@ -818,7 +818,7 @@ Therefore:
 
 ---
 
-# 28. Compacted Topic Semantics
+## 28. Compacted Topic Semantics
 
 A compacted topic can contain multiple records for the same key while those records have not yet been compacted.
 
@@ -838,7 +838,7 @@ Compaction eventually reduces obsolete records.
 
 ---
 
-# 29. Delete Retention vs Compaction
+## 29. Delete Retention vs Compaction
 
 Compare:
 
@@ -852,7 +852,7 @@ Compare:
 
 ---
 
-# 30. Key-Based Partitioning
+## 30. Key-Based Partitioning
 
 Suppose:
 
@@ -878,7 +878,7 @@ If the same key consistently maps to the same partition, related records can pre
 
 ---
 
-# 31. Per-Key Ordering
+## 31. Per-Key Ordering
 
 Suppose:
 
@@ -914,7 +914,7 @@ deviceId
 
 ---
 
-# 32. Hot Partitions
+## 32. Hot Partitions
 
 Key-based partitioning introduces a risk.
 
@@ -942,7 +942,7 @@ Adding more consumers will not necessarily solve the problem because one partiti
 
 ---
 
-# 33. Hot Partition Symptoms
+## 33. Hot Partition Symptoms
 
 Typical symptoms:
 
@@ -958,7 +958,7 @@ This is often a partitioning/key-design problem rather than simply a "need more 
 
 ---
 
-# 34. Partition Count and Throughput
+## 34. Partition Count and Throughput
 
 A useful conceptual model:
 
@@ -989,7 +989,7 @@ Partition planning is an architectural decision.
 
 ---
 
-# 35. Partition Count Is Difficult to Reduce
+## 35. Partition Count Is Difficult to Reduce
 
 Increasing partition count is supported.
 
@@ -1003,7 +1003,7 @@ If the topic later needs more parallelism, increasing partitions is possible, bu
 
 ---
 
-# 36. Partition Reassignment
+## 36. Partition Reassignment
 
 Partition replicas can be reassigned across brokers.
 
@@ -1030,7 +1030,7 @@ Reassignment can be used for:
 
 ---
 
-# 37. Reassignment Is Not Free
+## 37. Reassignment Is Not Free
 
 Moving replicas requires network and disk I/O.
 
@@ -1055,7 +1055,7 @@ Therefore reassignment must be planned carefully in production.
 
 ---
 
-# 38. Partition Leaders and Load
+## 38. Partition Leaders and Load
 
 Suppose all partition leaders are concentrated on one broker:
 
@@ -1080,7 +1080,7 @@ Good cluster design attempts to distribute leadership.
 
 ---
 
-# 39. Leader Balance
+## 39. Leader Balance
 
 A healthy cluster generally aims for reasonable distribution of:
 
@@ -1095,7 +1095,7 @@ A cluster can have enough replicas but still have poor performance if leadership
 
 ---
 
-# 40. Partition Placement
+## 40. Partition Placement
 
 For:
 
@@ -1117,7 +1117,7 @@ This spreads leadership.
 
 ---
 
-# 41. Storage Calculation
+## 41. Storage Calculation
 
 Suppose:
 
@@ -1156,7 +1156,7 @@ Do not design disks at 100% capacity.
 
 ---
 
-# 42. Partition Storage Distribution
+## 42. Partition Storage Distribution
 
 Suppose:
 
@@ -1196,7 +1196,7 @@ Actual usage depends on:
 
 ---
 
-# 43. Partition Count and Recovery
+## 43. Partition Count and Recovery
 
 More partitions can also increase recovery and operational work.
 
@@ -1220,7 +1220,7 @@ This is an administrator-level design consideration.
 
 ---
 
-# 44. Timestamp Concepts
+## 44. Timestamp Concepts
 
 Kafka records have timestamps.
 
@@ -1245,7 +1245,7 @@ These timestamps are useful for:
 
 ---
 
-# 45. Log Append Time
+## 45. Log Append Time
 
 With log append time semantics, the broker determines the timestamp associated with the record when it is appended.
 
@@ -1266,7 +1266,7 @@ This differs from relying purely on the producer's event timestamp.
 
 ---
 
-# 46. Create Time
+## 46. Create Time
 
 With create-time semantics, the timestamp originates from the producer side.
 
@@ -1284,7 +1284,7 @@ This can be useful for event-time applications.
 
 ---
 
-# 47. Certification Trap — Retention and Consumption
+## 47. Certification Trap — Retention and Consumption
 
 **Question:**
 
@@ -1298,7 +1298,7 @@ Retention and compaction policies determine when data is removed.
 
 ---
 
-# 48. Certification Trap — Ordering
+## 48. Certification Trap — Ordering
 
 **Question:**
 
@@ -1312,7 +1312,7 @@ Only per-partition ordering is guaranteed.
 
 ---
 
-# 49. Certification Trap — Offset
+## 49. Certification Trap — Offset
 
 **Question:**
 
@@ -1331,7 +1331,7 @@ P1 offset 100
 
 ---
 
-# 50. Certification Trap — Consumers
+## 50. Certification Trap — Consumers
 
 **Question:**
 
@@ -1345,7 +1345,7 @@ At most 4 consumers can have active partition assignments.
 
 ---
 
-# 51. Certification Trap — Partition Increase
+## 51. Certification Trap — Partition Increase
 
 **Question:**
 
@@ -1359,7 +1359,7 @@ The partitioning calculation can map keys differently after the partition count 
 
 ---
 
-# 52. Certification Trap — Compaction
+## 52. Certification Trap — Compaction
 
 **Question:**
 
@@ -1373,7 +1373,7 @@ Compaction is asynchronous and runs in the background.
 
 ---
 
-# 53. Certification Trap — Tombstone
+## 53. Certification Trap — Tombstone
 
 **Question:**
 
@@ -1385,7 +1385,7 @@ A record with a key and a null value, representing deletion of that key's curren
 
 ---
 
-# 54. Certification Trap — Hot Partition
+## 54. Certification Trap — Hot Partition
 
 **Question:**
 
@@ -1401,7 +1401,7 @@ The underlying problem may be an unbalanced partitioning/key strategy.
 
 ---
 
-# 55. Developer Lab — Observe Offsets
+## 55. Developer Lab — Observe Offsets
 
 Create:
 
@@ -1450,7 +1450,7 @@ Notice that offsets restart from zero for each partition.
 
 ---
 
-# 56. Developer Lab — Key Distribution
+## 56. Developer Lab — Key Distribution
 
 Produce records using:
 
@@ -1471,7 +1471,7 @@ Then explain why this matters for ordering.
 
 ---
 
-# 57. Developer Lab — Increase Partitions
+## 57. Developer Lab — Increase Partitions
 
 Create:
 
@@ -1496,7 +1496,7 @@ The goal is to understand why increasing partition count can affect future key m
 
 ---
 
-# 58. Administrator Lab — Inspect Partition Distribution
+## 58. Administrator Lab — Inspect Partition Distribution
 
 Create a topic:
 
@@ -1533,7 +1533,7 @@ Determine whether leadership is balanced.
 
 ---
 
-# 59. Administrator Lab — Simulate a Hot Partition
+## 59. Administrator Lab — Simulate a Hot Partition
 
 Create a topic with:
 
@@ -1561,7 +1561,7 @@ if the partitioning strategy is unbalanced.
 
 ---
 
-# 60. Administrator Lab — Retention
+## 60. Administrator Lab — Retention
 
 Configure a test topic with a very short retention period.
 
@@ -1588,7 +1588,7 @@ Do not expect immediate deletion at the exact millisecond the retention threshol
 
 ---
 
-# 61. Administrator Lab — Compaction
+## 61. Administrator Lab — Compaction
 
 Create a compacted topic.
 
@@ -1617,7 +1617,7 @@ tombstone-based deletion
 
 ---
 
-# 62. Senior-Level Scenario
+## 62. Senior-Level Scenario
 
 You operate:
 
@@ -1650,7 +1650,7 @@ This is the type of reasoning expected from a senior Kafka administrator.
 
 ---
 
-# 63. Design Exercise — Choose Partition Count
+## 63. Design Exercise — Choose Partition Count
 
 Suppose an application expects:
 
@@ -1687,7 +1687,7 @@ Therefore partition count should not be selected using throughput alone.
 
 ---
 
-# 64. Design Exercise — Choose the Key
+## 64. Design Exercise — Choose the Key
 
 Requirement:
 
@@ -1726,7 +1726,7 @@ Ordering is then lost at the partition level.
 
 ---
 
-# 65. Senior Interview Question
+## 65. Senior Interview Question
 
 ### Why not simply create thousands of partitions?
 
@@ -1750,7 +1750,7 @@ The correct answer is:
 
 ---
 
-# 66. Chapter 3 Knowledge Checklist
+## 66. Chapter 3 Knowledge Checklist
 
 You should be able to explain:
 
@@ -1784,7 +1784,7 @@ You should be able to explain:
 
 ---
 
-# 67. Final Mental Model
+## 67. Final Mental Model
 
 ```text
                          TOPIC

@@ -65,7 +65,7 @@ The essential distinction is:
 
 ---
 
-# 2. The Data Plane
+## 2. The Data Plane
 
 The data plane handles Kafka records.
 
@@ -97,7 +97,7 @@ It includes:
 
 ---
 
-# 3. The Control Plane
+## 3. The Control Plane
 
 The control plane manages cluster state.
 
@@ -127,7 +127,7 @@ A useful certification mental model:
 
 ---
 
-# 4. Kafka Broker
+## 4. Kafka Broker
 
 A broker is a Kafka server that participates in the cluster.
 
@@ -180,7 +180,7 @@ A broker can:
 
 ---
 
-# 5. Broker and Node Identity
+## 5. Broker and Node Identity
 
 Kafka cluster members need stable identities.
 
@@ -206,7 +206,7 @@ This distinction becomes important when designing production clusters.
 
 ---
 
-# 6. KRaft
+## 6. KRaft
 
 KRaft is Kafka's metadata management architecture based on the Raft consensus algorithm.
 
@@ -233,7 +233,7 @@ Modern Kafka certification preparation should therefore focus heavily on KRaft.
 
 ---
 
-# 7. KRaft Controllers
+## 7. KRaft Controllers
 
 Suppose we have three controllers:
 
@@ -258,7 +258,7 @@ The controllers maintain replicated metadata state.
 
 ---
 
-# 8. Controller Quorum
+## 8. Controller Quorum
 
 A quorum requires a majority.
 
@@ -316,7 +316,7 @@ failure tolerance = floor((N - 1) / 2)
 
 ---
 
-# 9. KRaft Metadata Log
+## 9. KRaft Metadata Log
 
 Kafka maintains a metadata log for cluster state.
 
@@ -339,7 +339,7 @@ The metadata log is different from application-data partition logs.
 
 ---
 
-# 10. Data Logs vs Metadata Log
+## 10. Data Logs vs Metadata Log
 
 Kafka contains two conceptually different kinds of logs.
 
@@ -379,7 +379,7 @@ Do not confuse them.
 
 ---
 
-# 11. Kafka Metadata
+## 11. Kafka Metadata
 
 Kafka needs to know:
 
@@ -401,7 +401,7 @@ The control plane manages it.
 
 ---
 
-# 12. Client Metadata
+## 12. Client Metadata
 
 A producer does not simply send records to an arbitrary broker.
 
@@ -434,7 +434,7 @@ The producer then knows where to send the request.
 
 ---
 
-# 13. Bootstrap Servers
+## 13. Bootstrap Servers
 
 Example:
 
@@ -467,7 +467,7 @@ partition leaders
 
 ---
 
-# 14. Advertised Listeners
+## 14. Advertised Listeners
 
 This is one of the most important operational topics.
 
@@ -496,7 +496,7 @@ Therefore:
 
 ---
 
-# 15. `listeners` vs `advertised.listeners`
+## 15. `listeners` vs `advertised.listeners`
 
 The distinction:
 
@@ -543,7 +543,7 @@ This distinction is critical in:
 
 ---
 
-# 16. Produce Request Flow
+## 16. Produce Request Flow
 
 Suppose the application creates:
 
@@ -603,7 +603,7 @@ Followers replicate the partition.
 
 ---
 
-# 17. Append-Only Log
+## 17. Append-Only Log
 
 Suppose a partition contains:
 
@@ -628,7 +628,7 @@ This sequential-write pattern contributes to Kafka's high throughput.
 
 ---
 
-# 18. Log Segments
+## 18. Log Segments
 
 A partition is divided into log segments.
 
@@ -661,7 +661,7 @@ Segments allow Kafka to manage:
 
 ---
 
-# 19. Indexes
+## 19. Indexes
 
 Kafka maintains indexes associated with log segments.
 
@@ -691,7 +691,7 @@ These become especially useful when discussing retention, timestamp-based lookup
 
 ---
 
-# 20. Page Cache
+## 20. Page Cache
 
 Kafka relies heavily on the operating system page cache.
 
@@ -716,7 +716,7 @@ The operating system can cache frequently accessed data.
 
 ---
 
-# 21. Sequential I/O
+## 21. Sequential I/O
 
 Kafka's append-only model allows efficient sequential I/O.
 
@@ -743,7 +743,7 @@ Sequential workloads are generally more efficient.
 
 ---
 
-# 22. Broker Network Architecture
+## 22. Broker Network Architecture
 
 A broker handles traffic from:
 
@@ -777,7 +777,7 @@ This is a conceptual model rather than a complete implementation diagram.
 
 ---
 
-# 23. Producer Request
+## 23. Producer Request
 
 A producer sends a produce request:
 
@@ -814,7 +814,7 @@ min.insync.replicas
 
 ---
 
-# 24. Consumer Fetch
+## 24. Consumer Fetch
 
 Consumers generally fetch records from Kafka.
 
@@ -839,7 +839,7 @@ The consumer controls its progress using offsets.
 
 ---
 
-# 25. Partition Leader
+## 25. Partition Leader
 
 For every partition there is normally one leader replica.
 
@@ -857,7 +857,7 @@ The leader serves client requests for that partition.
 
 ---
 
-# 26. Followers
+## 26. Followers
 
 Followers replicate the leader's log.
 
@@ -873,7 +873,7 @@ If followers fall behind significantly, their ISR status can change.
 
 ---
 
-# 27. Replication
+## 27. Replication
 
 Suppose:
 
@@ -901,7 +901,7 @@ Replication provides fault tolerance.
 
 ---
 
-# 28. ISR — In-Sync Replicas
+## 28. ISR — In-Sync Replicas
 
 ISR means:
 
@@ -923,7 +923,7 @@ The ISR is therefore a critical indicator of replica health.
 
 ---
 
-# 29. Replication Lag
+## 29. Replication Lag
 
 Suppose:
 
@@ -960,7 +960,7 @@ Replication lag can cause ISR shrinkage.
 
 ---
 
-# 30. ISR Shrink
+## 30. ISR Shrink
 
 Initial:
 
@@ -980,7 +980,7 @@ Operationally, sustained ISR shrinkage should trigger investigation.
 
 ---
 
-# 31. ISR Expansion
+## 31. ISR Expansion
 
 When B3 catches up:
 
@@ -1000,7 +1000,7 @@ Repeated shrink/expand cycles can indicate an unstable broker or overloaded infr
 
 ---
 
-# 32. Leader Election
+## 32. Leader Election
 
 Initial state:
 
@@ -1029,7 +1029,7 @@ Clients then refresh metadata.
 
 ---
 
-# 33. Broker Failure Sequence
+## 33. Broker Failure Sequence
 
 A common certification scenario:
 
@@ -1059,7 +1059,7 @@ The exact timing depends on cluster and client configuration.
 
 ---
 
-# 34. Why ISR Matters
+## 34. Why ISR Matters
 
 Suppose:
 
@@ -1087,7 +1087,7 @@ This is why ISR is central to Kafka's durability model.
 
 ---
 
-# 35. Unclean Leader Election
+## 35. Unclean Leader Election
 
 Consider:
 
@@ -1141,7 +1141,7 @@ Potential data loss
 
 ---
 
-# 36. `min.insync.replicas`
+## 36. `min.insync.replicas`
 
 Suppose:
 
@@ -1185,7 +1185,7 @@ This is intentional.
 
 ---
 
-# 37. Controller vs Partition Leader
+## 37. Controller vs Partition Leader
 
 Do not confuse these concepts.
 
@@ -1219,7 +1219,7 @@ These are different responsibilities.
 
 ---
 
-# 38. Partition Assignment
+## 38. Partition Assignment
 
 Suppose:
 
@@ -1251,7 +1251,7 @@ Good placement aims to distribute:
 
 ---
 
-# 39. Rack / Availability-Zone Awareness
+## 39. Rack / Availability-Zone Awareness
 
 Consider:
 
@@ -1280,7 +1280,7 @@ This provides stronger resilience than placing all replicas in the same failure 
 
 ---
 
-# 40. End-to-End Producer Flow
+## 40. End-to-End Producer Flow
 
 ```text
 Application
@@ -1314,7 +1314,7 @@ The exact acknowledgment behavior depends on producer configuration.
 
 ---
 
-# 41. End-to-End Consumer Flow
+## 41. End-to-End Consumer Flow
 
 ```text
 Kafka Consumer
@@ -1343,7 +1343,7 @@ Application
 
 ---
 
-# 42. Failure Scenario — Consumer and Leader Failure
+## 42. Failure Scenario — Consumer and Leader Failure
 
 Initial:
 
@@ -1370,7 +1370,7 @@ The consumer does not need to know the physical identity of the old leader to co
 
 ---
 
-# 43. Failure Scenario — Follower Falls Behind
+## 43. Failure Scenario — Follower Falls Behind
 
 Initial:
 
@@ -1401,7 +1401,7 @@ The administrator should investigate the underlying cause rather than treating I
 
 ---
 
-# 44. Failure Scenario — Insufficient ISR
+## 44. Failure Scenario — Insufficient ISR
 
 Configuration:
 
@@ -1443,7 +1443,7 @@ This is preferable to silently weakening the configured guarantee.
 
 ---
 
-# 45. Certification Question #1
+## 45. Certification Question #1
 
 A producer connects successfully to a bootstrap broker but cannot connect to the partition leader returned in metadata.
 
@@ -1463,7 +1463,7 @@ container networking
 
 ---
 
-# 46. Certification Question #2
+## 46. Certification Question #2
 
 A topic has:
 
@@ -1484,7 +1484,7 @@ Four consumers remain idle.
 
 ---
 
-# 47. Certification Question #3
+## 47. Certification Question #3
 
 A partition has:
 
@@ -1505,7 +1505,7 @@ There are exactly two in-sync replicas.
 
 ---
 
-# 48. Certification Question #4
+## 48. Certification Question #4
 
 A partition has:
 
@@ -1524,7 +1524,7 @@ The producer cannot satisfy the required ISR condition and may receive an insuff
 
 ---
 
-# 49. Certification Question #5
+## 49. Certification Question #5
 
 What happens when a follower becomes too far behind?
 
@@ -1534,7 +1534,7 @@ It may be removed from the ISR.
 
 ---
 
-# 50. Certification Question #6
+## 50. Certification Question #6
 
 What is KRaft responsible for?
 
@@ -1544,7 +1544,7 @@ KRaft provides Kafka's controller-based metadata management and quorum mechanism
 
 ---
 
-# 51. Certification Question #7
+## 51. Certification Question #7
 
 What is the difference between a controller leader and a partition leader?
 
@@ -1556,7 +1556,7 @@ A partition leader handles client requests for a specific partition.
 
 ---
 
-# 52. Certification Question #8
+## 52. Certification Question #8
 
 What is the main risk of unclean leader election?
 
@@ -1566,7 +1566,7 @@ Potential data loss because an out-of-sync replica may not contain the latest re
 
 ---
 
-# 53. Senior Architecture Exercise
+## 53. Senior Architecture Exercise
 
 Consider:
 
@@ -1633,7 +1633,7 @@ This reasoning pattern is more valuable than memorizing isolated configuration p
 
 ---
 
-# 54. Architecture Cheat Sheet
+## 54. Architecture Cheat Sheet
 
 ```text
 ┌──────────────────────────────────────────────┐
@@ -1665,7 +1665,7 @@ This reasoning pattern is more valuable than memorizing isolated configuration p
 
 ---
 
-# 55. Certification Knowledge Checklist
+## 55. Certification Knowledge Checklist
 
 You should now be able to explain:
 
@@ -1700,7 +1700,7 @@ You should now be able to explain:
 
 ---
 
-# 56. Hands-On Lab
+## 56. Hands-On Lab
 
 Build a small KRaft cluster:
 
@@ -1757,7 +1757,7 @@ Diagnosis
 
 ---
 
-# 57. Final Mental Model
+## 57. Final Mental Model
 
 ```text
                          KAFKA

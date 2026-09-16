@@ -21,7 +21,7 @@
 
 ---
 
-## Chapter 5 — Consumers and Consumer Groups Deep Dive
+# Chapter 5 — Consumers and Consumer Groups Deep Dive
 
 > Certification track: CCDAK + CCAAK  
 > Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition

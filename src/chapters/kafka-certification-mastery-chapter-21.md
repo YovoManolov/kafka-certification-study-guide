@@ -130,7 +130,7 @@ Blast radius is one of the fastest ways to narrow the hypothesis space.
 
 ------------------------------------------------------------------------
 
-# Producer Scenarios
+## Producer Scenarios
 
 ## 21.6 Scenario 1 --- Producer Cannot Connect
 
@@ -357,7 +357,7 @@ before changing it.
 
 ------------------------------------------------------------------------
 
-# Consumer Scenarios
+## Consumer Scenarios
 
 ## 21.16 Scenario 11 --- Consumer Lag Suddenly Increases
 
@@ -539,7 +539,7 @@ This is a classic authorization distinction.
 
 ------------------------------------------------------------------------
 
-# Replication and Broker Scenarios
+## Replication and Broker Scenarios
 
 ## 21.24 Scenario 19 --- Broker Disk Is Filling
 
@@ -762,7 +762,7 @@ knob.
 
 ------------------------------------------------------------------------
 
-# Networking and Security Scenarios
+## Networking and Security Scenarios
 
 ## 21.36 Scenario 31 --- Network Timeout
 
@@ -905,7 +905,7 @@ A consistent configuration must exist across the path.
 
 ------------------------------------------------------------------------
 
-# Delivery Semantics and Application Scenarios
+## Delivery Semantics and Application Scenarios
 
 ## 21.44 Scenario 39 --- Increasing JVM Heap Makes Kafka Slower
 
@@ -1176,7 +1176,7 @@ Do not bypass schema validation merely to restore deployment speed.
 
 ------------------------------------------------------------------------
 
-# Connect, Streams, and KRaft Scenarios
+## Connect, Streams, and KRaft Scenarios
 
 ## 21.58 Scenario 53 --- Kafka Connect Task Fails
 
@@ -1269,7 +1269,7 @@ Separate metadata quorum health from partition data replication.
 
 ------------------------------------------------------------------------
 
-# Operations and Architecture Scenarios
+## Operations and Architecture Scenarios
 
 ## 21.62 Scenario 57 --- Broker Restart During Incident
 
@@ -1751,7 +1751,7 @@ business logic
 
 ------------------------------------------------------------------------
 
-# Advanced Scenario Reasoning
+## Advanced Scenario Reasoning
 
 ## 21.86 Scenario 81 --- The Best First Action
 
@@ -2059,7 +2059,7 @@ C
 
 ------------------------------------------------------------------------
 
-# 21.101 CCDAK Scenario Pattern
+## 21.101 CCDAK Scenario Pattern
 
 Developer questions often emphasize:
 
@@ -2085,7 +2085,7 @@ application behavior
 
 ------------------------------------------------------------------------
 
-# 21.102 CCAAK Scenario Pattern
+## 21.102 CCAAK Scenario Pattern
 
 Administrator questions often emphasize:
 
@@ -2112,7 +2112,7 @@ operational safety
 
 ------------------------------------------------------------------------
 
-# 21.103 Mixed Scenario Pattern
+## 21.103 Mixed Scenario Pattern
 
 Some questions cross both domains.
 
@@ -2137,7 +2137,7 @@ Do not assume the question belongs to only one subsystem.
 
 ------------------------------------------------------------------------
 
-# 21.104 The 12 High-Value Diagnostic Questions
+## 21.104 The 12 High-Value Diagnostic Questions
 
 Memorize these:
 
@@ -2156,7 +2156,7 @@ Memorize these:
 
 ------------------------------------------------------------------------
 
-# 21.105 Final 20-Second Mental Model
+## 21.105 Final 20-Second Mental Model
 
 When the exam gives you a Kafka incident:
 
@@ -2180,7 +2180,7 @@ Do not jump directly from symptom to configuration change.
 
 ------------------------------------------------------------------------
 
-# 21.106 Certification Trap Matrix
+## 21.106 Certification Trap Matrix
 
   ------------------------------------------------------------------------------
   Symptom                 Common Wrong Answer     Better Direction
@@ -2220,7 +2220,7 @@ Do not jump directly from symptom to configuration change.
 
 ------------------------------------------------------------------------
 
-# 21.107 Final Exam Checklist
+## 21.107 Final Exam Checklist
 
 Before selecting an answer:
 
@@ -2239,7 +2239,7 @@ Before selecting an answer:
 
 ------------------------------------------------------------------------
 
-# 21.108 Master Cheat Sheet
+## 21.108 Master Cheat Sheet
 
 ## Producer
 
@@ -2329,7 +2329,7 @@ controllers
 
 ------------------------------------------------------------------------
 
-# 21.109 Senior-Level Principle
+## 21.109 Senior-Level Principle
 
 The strongest answer in a Kafka certification scenario is rarely:
 
@@ -2345,7 +2345,7 @@ judgment.
 
 ------------------------------------------------------------------------
 
-# 21.110 Chapter Summary
+## 21.110 Chapter Summary
 
 The core method is:
 
@@ -2401,7 +2401,7 @@ It is being able to look at a Kafka symptom and immediately ask:
 
 ------------------------------------------------------------------------
 
-# 21.111 Final Challenge --- Senior Certification Drill
+## 21.111 Final Challenge --- Senior Certification Drill
 
 For each incident below, answer in under 60 seconds.
 
@@ -2487,7 +2487,7 @@ Identify why blindly retrying may be unsafe.
 
 ------------------------------------------------------------------------
 
-# 21.112 Answers to the Final Challenge
+## 21.112 Answers to the Final Challenge
 
 ### A
 
@@ -2612,7 +2612,7 @@ rather than blindly assuming failure.
 
 ------------------------------------------------------------------------
 
-# 21.113 Next Chapter
+## 21.113 Next Chapter
 
 ## Chapter 22 --- Kafka Certification Mock Exam #1: Developer Fundamentals + Producer/Consumer
 

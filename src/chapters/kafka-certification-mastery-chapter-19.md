@@ -6,7 +6,7 @@
 
 ---
 
-## 18.1 Learning Objectives
+## 19.1 Learning Objectives
 
 By the end of this chapter, you should be able to:
 
@@ -26,7 +26,7 @@ By the end of this chapter, you should be able to:
 
 ---
 
-# 18.2 The Kafka Networking Mental Model
+## 19.2 The Kafka Networking Mental Model
 
 The most important networking concept in Kafka is:
 
@@ -68,7 +68,7 @@ This distinction explains a large percentage of real-world Kafka networking inci
 
 ---
 
-# 18.3 The Four Layers You Must Separate
+## 19.3 The Four Layers You Must Separate
 
 When troubleshooting Kafka networking, separate:
 
@@ -119,7 +119,7 @@ Not every deployment uses every layer.
 
 ---
 
-# 18.4 TCP/IP Fundamentals for Kafka
+## 19.4 TCP/IP Fundamentals for Kafka
 
 Kafka is fundamentally a TCP-based distributed system.
 
@@ -157,7 +157,7 @@ Kafka protocol does not matter yet.
 
 ---
 
-# 18.5 DNS
+## 19.5 DNS
 
 Kafka clients commonly connect using DNS names:
 
@@ -185,7 +185,7 @@ A hostname can resolve successfully to an IP that is:
 
 ---
 
-# 18.6 `bootstrap.servers`
+## 19.6 `bootstrap.servers`
 
 Client configuration:
 
@@ -211,7 +211,7 @@ After bootstrap, Kafka metadata tells the client where brokers and partition lea
 
 ---
 
-# 18.7 `listeners`
+## 19.7 `listeners`
 
 Broker configuration:
 
@@ -237,7 +237,7 @@ It is not a valid address to advertise to remote clients.
 
 ---
 
-# 18.8 `advertised.listeners`
+## 19.8 `advertised.listeners`
 
 Example:
 
@@ -263,7 +263,7 @@ This distinction is one of the most important Kafka certification concepts.
 
 ---
 
-# 18.9 The Classic Advertised Listener Failure
+## 19.9 The Classic Advertised Listener Failure
 
 Consider:
 
@@ -311,7 +311,7 @@ This is a canonical troubleshooting scenario.
 
 ---
 
-# 18.10 `advertised.listeners` Must Be Reachable From the Client
+## 19.10 `advertised.listeners` Must Be Reachable From the Client
 
 A broker can advertise:
 
@@ -339,7 +339,7 @@ The better question is:
 
 ---
 
-# 18.11 Internal and External Listeners
+## 19.11 Internal and External Listeners
 
 A common architecture is:
 
@@ -369,7 +369,7 @@ The listener names are logical identifiers.
 
 ---
 
-# 18.12 Listener Names Versus Security Protocols
+## 19.12 Listener Names Versus Security Protocols
 
 Kafka supports named listeners.
 
@@ -389,7 +389,7 @@ Current Kafka broker documentation explicitly supports mapping listener names to
 
 ---
 
-# 18.13 Listener-Specific Configuration
+## 19.13 Listener-Specific Configuration
 
 Listener-specific properties use the listener name.
 
@@ -415,7 +415,7 @@ This is especially useful when internal and external traffic have different trus
 
 ---
 
-# 18.14 Kafka Security Protocols
+## 19.14 Kafka Security Protocols
 
 The major security protocol combinations are:
 
@@ -439,7 +439,7 @@ Kafka's security model also includes authorization after authentication.
 
 ---
 
-# 18.15 Encryption vs Authentication vs Authorization
+## 19.15 Encryption vs Authentication vs Authorization
 
 These concepts must not be confused.
 
@@ -487,7 +487,7 @@ orders-service may NOT ALTER cluster
 
 ---
 
-# 18.16 TLS Fundamentals
+## 19.16 TLS Fundamentals
 
 TLS provides:
 
@@ -525,7 +525,7 @@ both sides authenticate through certificates.
 
 ---
 
-# 18.17 TLS Certificate Hostname Validation
+## 19.17 TLS Certificate Hostname Validation
 
 Suppose:
 
@@ -567,7 +567,7 @@ must match certificate identity
 
 ---
 
-# 18.18 Common TLS Failures
+## 19.18 Common TLS Failures
 
 Typical symptoms include:
 
@@ -594,7 +594,7 @@ Do not treat every TLS error as a Kafka broker problem.
 
 ---
 
-# 18.19 SASL
+## 19.19 SASL
 
 SASL provides authentication mechanisms.
 
@@ -632,7 +632,7 @@ SASL authentication
 
 ---
 
-# 18.20 SASL Authentication Flow
+## 19.20 SASL Authentication Flow
 
 Conceptually:
 
@@ -652,7 +652,7 @@ Failure at each stage has a different diagnostic meaning.
 
 ---
 
-# 18.21 SASL/PLAIN
+## 19.21 SASL/PLAIN
 
 Conceptually:
 
@@ -677,7 +677,7 @@ does not encrypt the SASL credentials or traffic.
 
 ---
 
-# 18.22 SCRAM
+## 19.22 SCRAM
 
 SCRAM provides challenge-response authentication and avoids sending the password directly as a plain credential exchange.
 
@@ -692,7 +692,7 @@ For production deployments, combine authentication with encrypted transport when
 
 ---
 
-# 18.23 Kerberos / GSSAPI
+## 19.23 Kerberos / GSSAPI
 
 GSSAPI is commonly associated with Kerberos environments.
 
@@ -721,7 +721,7 @@ Operational complexity includes:
 
 ---
 
-# 18.24 OAUTHBEARER
+## 19.24 OAUTHBEARER
 
 OAUTHBEARER integrates Kafka authentication with OAuth-style bearer tokens.
 
@@ -743,7 +743,7 @@ Production deployments require careful token lifecycle and identity-provider int
 
 ---
 
-# 18.25 Authentication Does Not Grant Permissions
+## 19.25 Authentication Does Not Grant Permissions
 
 A successful SASL or TLS authentication does not mean the client can read every topic.
 
@@ -771,7 +771,7 @@ GroupAuthorizationException
 
 ---
 
-# 18.26 KRaft Controller Networking
+## 19.26 KRaft Controller Networking
 
 KRaft introduces controller communication in addition to ordinary client/broker traffic.
 
@@ -805,7 +805,7 @@ Controller endpoints are part of the cluster's internal control-plane architectu
 
 ---
 
-# 18.27 Client Plane vs Control Plane
+## 19.27 Client Plane vs Control Plane
 
 A useful operational distinction:
 
@@ -833,7 +833,7 @@ A cluster can have healthy client connectivity while controller networking has a
 
 ---
 
-# 18.28 Inter-Broker Communication
+## 19.28 Inter-Broker Communication
 
 Brokers communicate for:
 
@@ -854,7 +854,7 @@ can provide encrypted broker-to-broker communication.
 
 ---
 
-# 18.29 NAT
+## 19.29 NAT
 
 NAT creates an important Kafka challenge.
 
@@ -882,7 +882,7 @@ The advertised endpoint must reflect the reachable client-facing path.
 
 ---
 
-# 18.30 Load Balancers
+## 19.30 Load Balancers
 
 Kafka is not equivalent to a typical stateless HTTP service.
 
@@ -914,7 +914,7 @@ Kafka-aware networking design must account for this.
 
 ---
 
-# 18.31 Docker Networking
+## 19.31 Docker Networking
 
 A classic Docker mistake:
 
@@ -948,7 +948,7 @@ and a separately designed external listener for host/external clients.
 
 ---
 
-# 18.32 Docker Internal/External Pattern
+## 19.32 Docker Internal/External Pattern
 
 Conceptual example:
 
@@ -971,7 +971,7 @@ Production should use appropriate DNS, TLS, and network isolation rather than co
 
 ---
 
-# 18.33 Kubernetes Networking
+## 19.33 Kubernetes Networking
 
 Kubernetes introduces:
 
@@ -999,7 +999,7 @@ and ensures those endpoints are correctly advertised.
 
 ---
 
-# 18.34 Cloud Networking
+## 19.34 Cloud Networking
 
 Cloud Kafka deployments require consideration of:
 
@@ -1020,7 +1020,7 @@ A successful TCP test from one subnet does not prove that every application subn
 
 ---
 
-# 18.35 Security Groups and Firewalls
+## 19.35 Security Groups and Firewalls
 
 A Kafka port must be permitted at every relevant layer.
 
@@ -1046,7 +1046,7 @@ Troubleshooting should identify which layer blocks the connection.
 
 ---
 
-# 18.36 Packet-Flow Troubleshooting
+## 19.36 Packet-Flow Troubleshooting
 
 Use a layered approach.
 
@@ -1110,7 +1110,7 @@ Verify ACLs and the authenticated principal.
 
 ---
 
-# 18.37 A Systematic Troubleshooting Matrix
+## 19.37 A Systematic Troubleshooting Matrix
 
 | Symptom | First Layer to Investigate |
 |---|---|
@@ -1129,7 +1129,7 @@ Verify ACLs and the authenticated principal.
 
 ---
 
-# 18.38 `connection refused` vs `timeout`
+## 19.38 `connection refused` vs `timeout`
 
 These are not the same.
 
@@ -1174,7 +1174,7 @@ These are clues, not absolute guarantees.
 
 ---
 
-# 18.39 TLS Handshake vs TCP Handshake
+## 19.39 TLS Handshake vs TCP Handshake
 
 TCP:
 
@@ -1204,7 +1204,7 @@ means the TCP connection was already established far enough to begin TLS.
 
 ---
 
-# 18.40 Protocol Version Negotiation
+## 19.40 Protocol Version Negotiation
 
 Kafka clients and brokers negotiate protocol capabilities.
 
@@ -1229,7 +1229,7 @@ same Kafka broker version
 
 ---
 
-# 18.41 Kafka Request Flow
+## 19.41 Kafka Request Flow
 
 A simplified request:
 
@@ -1267,7 +1267,7 @@ Understanding request flow helps interpret metrics and logs.
 
 ---
 
-# 18.42 Metadata Is Central to Kafka Networking
+## 19.42 Metadata Is Central to Kafka Networking
 
 Metadata contains information such as:
 
@@ -1291,7 +1291,7 @@ This is why advertised listener errors can look like random application failures
 
 ---
 
-# 18.43 Why Bootstrap Does Not Need Every Broker
+## 19.43 Why Bootstrap Does Not Need Every Broker
 
 A client needs enough bootstrap addresses to initially discover the cluster.
 
@@ -1307,7 +1307,7 @@ However, operationally it is useful to provide multiple bootstrap addresses to a
 
 ---
 
-# 18.44 Multiple Bootstrap Servers
+## 19.44 Multiple Bootstrap Servers
 
 Prefer:
 
@@ -1334,7 +1334,7 @@ Multiple endpoints improve resilience against:
 
 ---
 
-# 18.45 DNS Strategy
+## 19.45 DNS Strategy
 
 For production, DNS names should be:
 
@@ -1348,7 +1348,7 @@ Avoid advertising ephemeral IPs when stable identities are available.
 
 ---
 
-# 18.46 Port Strategy
+## 19.46 Port Strategy
 
 Typical examples:
 
@@ -1374,7 +1374,7 @@ Never memorize a port as if it were a protocol requirement.
 
 ---
 
-# 18.47 Network Security Design
+## 19.47 Network Security Design
 
 A production design might look like:
 
@@ -1404,7 +1404,7 @@ Internal access
 
 ---
 
-# 18.48 Encryption Does Not Replace Network Isolation
+## 19.48 Encryption Does Not Replace Network Isolation
 
 Using TLS does not mean:
 
@@ -1432,7 +1432,7 @@ Defense in depth matters.
 
 ---
 
-# 18.49 Authorization and Network Reachability
+## 19.49 Authorization and Network Reachability
 
 These are separate.
 
@@ -1463,7 +1463,7 @@ is a useful troubleshooting sequence.
 
 ---
 
-# 18.50 Scenario Drill — Localhost Trap
+## 19.50 Scenario Drill — Localhost Trap
 
 Configuration:
 
@@ -1486,7 +1486,7 @@ Fix the advertised endpoint according to the client network.
 
 ---
 
-# 18.51 Scenario Drill — Docker Works, Host Fails
+## 19.51 Scenario Drill — Docker Works, Host Fails
 
 Containers can connect using:
 
@@ -1512,7 +1512,7 @@ or a proper host/DNS endpoint.
 
 ---
 
-# 18.52 Scenario Drill — Host Works, Container Fails
+## 19.52 Scenario Drill — Host Works, Container Fails
 
 Host connects using:
 
@@ -1538,7 +1538,7 @@ or another address reachable from the container network.
 
 ---
 
-# 18.53 Scenario Drill — TLS Fails Only Externally
+## 19.53 Scenario Drill — TLS Fails Only Externally
 
 Internal clients work.
 
@@ -1557,7 +1557,7 @@ The internal and external listener identities may require different certificates
 
 ---
 
-# 18.54 Scenario Drill — SASL Authentication Fails
+## 19.54 Scenario Drill — SASL Authentication Fails
 
 Symptoms:
 
@@ -1582,7 +1582,7 @@ Do not troubleshoot routing first if TCP and TLS have already succeeded.
 
 ---
 
-# 18.55 Scenario Drill — Authorization Fails
+## 19.55 Scenario Drill — Authorization Fails
 
 Symptoms:
 
@@ -1606,7 +1606,7 @@ Authentication is not authorization.
 
 ---
 
-# 18.56 Scenario Drill — Only One Broker Is Unreachable
+## 19.56 Scenario Drill — Only One Broker Is Unreachable
 
 If:
 
@@ -1631,7 +1631,7 @@ This is more likely than a cluster-wide client configuration issue.
 
 ---
 
-# 18.57 Scenario Drill — All Brokers Unreachable
+## 19.57 Scenario Drill — All Brokers Unreachable
 
 If every broker fails:
 
@@ -1649,7 +1649,7 @@ should be investigated before individual broker metadata.
 
 ---
 
-# 18.58 Scenario Drill — Metadata Contains Private IP
+## 19.58 Scenario Drill — Metadata Contains Private IP
 
 External client receives:
 
@@ -1669,7 +1669,7 @@ advertised endpoint not reachable from client network
 
 ---
 
-# 18.59 Scenario Drill — Correct Port, Wrong Protocol
+## 19.59 Scenario Drill — Correct Port, Wrong Protocol
 
 Broker listener:
 
@@ -1691,7 +1691,7 @@ The port being correct does not mean the protocol is correct.
 
 ---
 
-# 18.60 Scenario Drill — SASL_SSL vs SSL
+## 19.60 Scenario Drill — SASL_SSL vs SSL
 
 Broker:
 
@@ -1711,7 +1711,7 @@ The security protocol must be compatible on both sides.
 
 ---
 
-# 18.61 Scenario Drill — `SASL_PLAINTEXT`
+## 19.61 Scenario Drill — `SASL_PLAINTEXT`
 
 Configuration:
 
@@ -1739,7 +1739,7 @@ SASL_SSL
 
 ---
 
-# 18.62 Scenario Drill — Wrong Certificate Authority
+## 19.62 Scenario Drill — Wrong Certificate Authority
 
 Symptoms:
 
@@ -1757,7 +1757,7 @@ Investigate the truststore and certificate chain.
 
 ---
 
-# 18.63 Scenario Drill — Certificate Expired
+## 19.63 Scenario Drill — Certificate Expired
 
 Symptoms:
 
@@ -1780,7 +1780,7 @@ validate all broker identities
 
 ---
 
-# 18.64 Scenario Drill — DNS Works but Kafka Fails
+## 19.64 Scenario Drill — DNS Works but Kafka Fails
 
 Suppose:
 
@@ -1812,7 +1812,7 @@ listener binding
 
 ---
 
-# 18.65 Scenario Drill — TCP Works but Kafka Client Fails
+## 19.65 Scenario Drill — TCP Works but Kafka Client Fails
 
 Suppose:
 
@@ -1838,7 +1838,7 @@ Do not keep changing firewall rules.
 
 ---
 
-# 18.66 Scenario Drill — Producer Can Send, Consumer Cannot
+## 19.66 Scenario Drill — Producer Can Send, Consumer Cannot
 
 Possible causes include:
 
@@ -1852,7 +1852,7 @@ Do not assume a cluster network outage simply because one client works.
 
 ---
 
-# 18.67 Scenario Drill — Consumer Connects but Rebalances Repeatedly
+## 19.67 Scenario Drill — Consumer Connects but Rebalances Repeatedly
 
 This can involve networking if:
 
@@ -1873,7 +1873,7 @@ Not every rebalance is a network failure.
 
 ---
 
-# 18.68 Scenario Drill — High Connection Churn
+## 19.68 Scenario Drill — High Connection Churn
 
 Symptoms:
 
@@ -1896,7 +1896,7 @@ Kafka clients are intended to maintain long-lived connections.
 
 ---
 
-# 18.69 Scenario Drill — Cross-AZ Latency
+## 19.69 Scenario Drill — Cross-AZ Latency
 
 Application and Kafka brokers span availability zones.
 
@@ -1918,7 +1918,7 @@ which traffic crosses zones
 
 ---
 
-# 18.70 Scenario Drill — Cross-Region Kafka Traffic
+## 19.70 Scenario Drill — Cross-Region Kafka Traffic
 
 Cross-region traffic introduces:
 
@@ -1936,7 +1936,7 @@ same cluster + longer network cable
 
 ---
 
-# 18.71 Certification Traps
+## 19.71 Certification Traps
 
 1. **`listeners` is the address clients use.**  
    False. It describes broker bind/listen endpoints.
@@ -1985,7 +1985,7 @@ same cluster + longer network cable
 
 ---
 
-# 18.72 Production Connectivity Checklist
+## 19.72 Production Connectivity Checklist
 
 ## DNS
 
@@ -2037,7 +2037,7 @@ same cluster + longer network cable
 
 ---
 
-# 18.73 Connectivity Troubleshooting Runbook
+## 19.73 Connectivity Troubleshooting Runbook
 
 Use this sequence:
 
@@ -2065,7 +2065,7 @@ This prevents random configuration changes.
 
 ---
 
-# 18.74 The "Network Five" Mental Model
+## 19.74 The "Network Five" Mental Model
 
 For certification questions, remember:
 
@@ -2085,7 +2085,7 @@ Each layer answers a different question.
 
 ---
 
-# 18.75 Advanced Listener Design Example
+## 19.75 Advanced Listener Design Example
 
 Example three-listener design:
 
@@ -2117,7 +2117,7 @@ The exact topology must be adapted to the Kafka version and deployment.
 
 ---
 
-# 18.76 What a Senior Kafka Engineer Should Ask
+## 19.76 What a Senior Kafka Engineer Should Ask
 
 When someone says:
 
@@ -2149,7 +2149,7 @@ This is the difference between trial-and-error troubleshooting and systematic di
 
 ---
 
-# 18.77 Certification Master Matrix
+## 19.77 Certification Master Matrix
 
 | Concept | Remember | Typical Trap |
 |---|---|---|
@@ -2175,7 +2175,7 @@ This is the difference between trial-and-error troubleshooting and systematic di
 
 ---
 
-# 18.78 Final Cheat Sheet
+## 19.78 Final Cheat Sheet
 
 ## Listener concepts
 
@@ -2269,7 +2269,7 @@ network isolation
 
 ---
 
-# 18.79 Chapter Summary
+## 19.79 Chapter Summary
 
 Remember these principles:
 
@@ -2296,7 +2296,7 @@ Remember these principles:
 
 ---
 
-# Official Reference Material
+## Official Reference Material
 
 Current Apache Kafka documentation should be used for version-specific configuration and security behavior:
 
@@ -2310,9 +2310,9 @@ Official documentation confirms that Kafka supports authentication using SSL or 
 
 ---
 
-# Next Chapter
+## Next Chapter
 
-## Chapter 19 — Kafka Security Deep Dive: TLS, SASL, ACLs, Authentication & Authorization
+# Chapter 19 — Kafka Security Deep Dive: TLS, SASL, ACLs, Authentication & Authorization
 
 Topics:
 

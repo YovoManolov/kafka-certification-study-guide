@@ -30,14 +30,14 @@
 - [Chapter 7 — Kafka Administration and Operations Deep Dive](#chapter-7-kafka-administration-and-operations-deep-dive)
 
 ---
-## Chapter 6 — Kafka Storage, Replication, ISR and Fault Tolerance
+# Chapter 6 — Kafka Storage, Replication, ISR and Fault Tolerance
 
 > Certification track: CCDAK + CCAAK  
 > Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
 
 ---
 
-# 1. Chapter Objectives
+## 1. Chapter Objectives
 
 This chapter covers one of the most important areas for both Kafka developer and administrator certification:
 
@@ -85,7 +85,7 @@ Replicas
 
 ---
 
-# 2. Kafka Storage Model
+## 2. Kafka Storage Model
 
 Kafka stores records in partitions.
 
@@ -106,7 +106,7 @@ Each partition is an ordered append-only log.
 
 ---
 
-# 3. Partition Log
+## 3. Partition Log
 
 Consider:
 
@@ -132,7 +132,7 @@ Offsets identify positions in the partition.
 
 ---
 
-# 4. Append-Only Design
+## 4. Append-Only Design
 
 Kafka generally does not modify records in place.
 
@@ -156,7 +156,7 @@ Kafka consumers track their position using offsets.
 
 ---
 
-# 5. Log Segments
+## 5. Log Segments
 
 A partition is stored as a sequence of log segment files.
 
@@ -177,7 +177,7 @@ Older segments become eligible for retention or deletion according to configured
 
 ---
 
-# 6. Why Segments Exist
+## 6. Why Segments Exist
 
 Kafka needs to manage large logs without treating an entire partition as one enormous file.
 
@@ -192,7 +192,7 @@ Segments allow Kafka to:
 
 ---
 
-# 7. Offset Index
+## 7. Offset Index
 
 Kafka maintains indexes that help locate records efficiently.
 
@@ -212,7 +212,7 @@ It does not need to scan the entire partition from offset zero.
 
 ---
 
-# 8. Time Index
+## 8. Time Index
 
 Kafka also maintains time-based indexing information.
 
@@ -237,7 +237,7 @@ without scanning the entire log.
 
 ---
 
-# 9. Retention
+## 9. Retention
 
 Kafka retains records based on policies.
 
@@ -254,7 +254,7 @@ This is a critical difference from traditional message queues.
 
 ---
 
-# 10. Consumer Progress Does Not Delete Records
+## 10. Consumer Progress Does Not Delete Records
 
 Suppose:
 
@@ -281,7 +281,7 @@ The log is retained according to topic/broker retention policies.
 
 ---
 
-# 11. Replication
+## 11. Replication
 
 Kafka provides fault tolerance through replication.
 
@@ -303,7 +303,7 @@ These replicas are normally placed on different brokers.
 
 ---
 
-# 12. Leader and Followers
+## 12. Leader and Followers
 
 For a replicated partition:
 
@@ -321,7 +321,7 @@ Followers replicate the leader's log.
 
 ---
 
-# 13. Producer Request Path
+## 13. Producer Request Path
 
 For a partition:
 
@@ -341,7 +341,7 @@ The leader coordinates replication.
 
 ---
 
-# 14. Consumer Request Path
+## 14. Consumer Request Path
 
 Consumers normally fetch from partition leaders.
 
@@ -363,7 +363,7 @@ Kafka has supported follower fetching in specific configurations/architectures, 
 
 ---
 
-# 15. Replication Factor
+## 15. Replication Factor
 
 Replication factor means:
 
@@ -390,7 +390,7 @@ Each partition is replicated independently.
 
 ---
 
-# 16. Replication Factor and Fault Tolerance
+## 16. Replication Factor and Fault Tolerance
 
 Suppose:
 
@@ -421,7 +421,7 @@ This is the foundation of Kafka availability during broker failures.
 
 ---
 
-# 17. ISR — In-Sync Replicas
+## 17. ISR — In-Sync Replicas
 
 ISR means:
 
@@ -445,7 +445,7 @@ ISR membership is dynamic.
 
 ---
 
-# 18. ISR Is Not Simply "All Replicas"
+## 18. ISR Is Not Simply "All Replicas"
 
 Suppose:
 
@@ -472,7 +472,7 @@ The replica still exists, but it is not currently considered in sync.
 
 ---
 
-# 19. Why ISR Matters
+## 19. Why ISR Matters
 
 ISR is critical for:
 
@@ -497,7 +497,7 @@ These are operationally different states.
 
 ---
 
-# 20. Follower Replication
+## 20. Follower Replication
 
 Followers fetch records from the leader.
 
@@ -515,7 +515,7 @@ A follower continuously attempts to stay caught up.
 
 ---
 
-# 21. Replica Fetching
+## 21. Replica Fetching
 
 Kafka brokers use replication mechanisms to transfer partition data from leaders to followers.
 
@@ -535,7 +535,7 @@ If a follower cannot keep up, replication lag grows.
 
 ---
 
-# 22. Replication Lag
+## 22. Replication Lag
 
 Suppose:
 
@@ -564,7 +564,7 @@ Replication lag can be caused by:
 
 ---
 
-# 23. Removing a Replica from ISR
+## 23. Removing a Replica from ISR
 
 If a follower falls sufficiently behind according to Kafka's replica synchronization rules, it can leave the ISR.
 
@@ -586,7 +586,7 @@ This reduces the number of replicas eligible for normal ISR-based guarantees.
 
 ---
 
-# 24. ISR Recovery
+## 24. ISR Recovery
 
 Suppose B3 catches up.
 
@@ -614,7 +614,7 @@ Again.
 
 ---
 
-# 25. High Watermark
+## 25. High Watermark
 
 The high watermark is an important Kafka replication concept.
 
@@ -634,7 +634,7 @@ Consumers generally cannot read beyond the high watermark in normal non-isolatio
 
 ---
 
-# 26. Why High Watermark Matters
+## 26. Why High Watermark Matters
 
 Suppose:
 
@@ -652,7 +652,7 @@ Kafka uses replication state and the high watermark to control visibility and re
 
 ---
 
-# 27. High Watermark vs Log End Offset
+## 27. High Watermark vs Log End Offset
 
 These are not the same.
 
@@ -677,7 +677,7 @@ There can be records after the high watermark that are not yet considered fully 
 
 ---
 
-# 28. Leader Epoch
+## 28. Leader Epoch
 
 A leader epoch identifies a period during which a particular broker was leader for a partition.
 
@@ -697,7 +697,7 @@ Leader epochs help Kafka reason about leadership changes and log consistency.
 
 ---
 
-# 29. Why Leader Epochs Matter
+## 29. Why Leader Epochs Matter
 
 Imagine:
 
@@ -714,7 +714,7 @@ Leader epoch information helps Kafka determine which records belong to the valid
 
 ---
 
-# 30. Broker Failure
+## 30. Broker Failure
 
 Suppose:
 
@@ -739,7 +739,7 @@ The producer refreshes metadata and sends future requests to B2.
 
 ---
 
-# 31. Leader Election
+## 31. Leader Election
 
 Leader election generally selects an eligible replica according to Kafka's replica state.
 
@@ -755,7 +755,7 @@ Kafka prefers replicas that are in the appropriate synchronized state.
 
 ---
 
-# 32. Clean Leader Election
+## 32. Clean Leader Election
 
 A clean election chooses a replica that is considered sufficiently synchronized.
 
@@ -773,7 +773,7 @@ This preserves the committed history represented by the synchronized replica set
 
 ---
 
-# 33. Unclean Leader Election
+## 33. Unclean Leader Election
 
 Unclean leader election allows a replica outside the ISR to become leader when no suitable in-sync replica is available.
 
@@ -801,7 +801,7 @@ B2 may not contain all records that existed on B1.
 
 ---
 
-# 34. Availability vs Durability
+## 34. Availability vs Durability
 
 Unclean leader election illustrates a classic distributed-systems tradeoff:
 
@@ -823,7 +823,7 @@ For critical data, unclean leader election is generally treated very cautiously.
 
 ---
 
-# 35. `unclean.leader.election.enable`
+## 35. `unclean.leader.election.enable`
 
 This broker/topic-level behavior controls whether out-of-sync replicas can become leaders when no in-sync replica is available.
 
@@ -847,7 +847,7 @@ Exact configuration and defaults depend on Kafka version, so certification prepa
 
 ---
 
-# 36. `min.insync.replicas`
+## 36. `min.insync.replicas`
 
 This setting establishes a minimum ISR requirement for writes that require the ISR condition.
 
@@ -883,7 +883,7 @@ Writes requiring two in-sync replicas fail.
 
 ---
 
-# 37. Why RF=3 and min ISR=2 Is Common
+## 37. Why RF=3 and min ISR=2 Is Common
 
 This configuration creates a useful balance:
 
@@ -904,7 +904,7 @@ can make the partition unavailable for writes.
 
 ---
 
-# 38. Rack Awareness
+## 38. Rack Awareness
 
 Kafka can distribute replicas across racks or failure domains.
 
@@ -934,7 +934,7 @@ Rack awareness protects against correlated infrastructure failures.
 
 ---
 
-# 39. Why Rack Awareness Matters
+## 39. Why Rack Awareness Matters
 
 Without rack awareness:
 
@@ -958,7 +958,7 @@ one rack failure does not necessarily destroy all replicas.
 
 ---
 
-# 40. Preferred Replica
+## 40. Preferred Replica
 
 Kafka maintains an ordered replica list for each partition.
 
@@ -978,7 +978,7 @@ The preferred replica is normally the desired leader.
 
 ---
 
-# 41. Preferred Leader Election
+## 41. Preferred Leader Election
 
 Over time, leadership can become unevenly distributed.
 
@@ -996,7 +996,7 @@ The goal is to distribute leader workload more evenly.
 
 ---
 
-# 42. Leader Imbalance
+## 42. Leader Imbalance
 
 Suppose one broker owns many partition leaders.
 
@@ -1021,7 +1021,7 @@ Monitoring leader distribution is therefore important.
 
 ---
 
-# 43. Partition Reassignment
+## 43. Partition Reassignment
 
 Administrators can move partition replicas between brokers.
 
@@ -1047,7 +1047,7 @@ This is useful for:
 
 ---
 
-# 44. Reassignment Is Not Free
+## 44. Reassignment Is Not Free
 
 Moving replicas consumes resources.
 
@@ -1066,7 +1066,7 @@ Therefore Kafka administrators often throttle reassignment.
 
 ---
 
-# 45. Replica Reassignment Scenario
+## 45. Replica Reassignment Scenario
 
 Suppose:
 
@@ -1088,7 +1088,7 @@ Administrators may need to perform partition reassignment.
 
 ---
 
-# 46. Adding Brokers Does Not Automatically Solve Existing Imbalance
+## 46. Adding Brokers Does Not Automatically Solve Existing Imbalance
 
 This is a common operational misunderstanding.
 
@@ -1116,7 +1116,7 @@ Capacity planning must include data redistribution.
 
 ---
 
-# 47. Broker Recovery
+## 47. Broker Recovery
 
 Suppose B1 fails and B2 becomes leader.
 
@@ -1142,7 +1142,7 @@ During recovery, disk and network resources are consumed.
 
 ---
 
-# 48. Recovery Can Cause Load
+## 48. Recovery Can Cause Load
 
 A recovering broker may need to catch up many partitions.
 
@@ -1161,7 +1161,7 @@ This is why operational headroom matters.
 
 ---
 
-# 49. Disk Failure
+## 49. Disk Failure
 
 If a broker loses a disk containing partition replicas:
 
@@ -1182,7 +1182,7 @@ The failed broker can recover data through Kafka's replication mechanisms or adm
 
 ---
 
-# 50. Broker Failure vs Partition Failure
+## 50. Broker Failure vs Partition Failure
 
 A broker failure can affect many partitions simultaneously.
 
@@ -1213,7 +1213,7 @@ rack placement
 
 ---
 
-# 51. Controller Role
+## 51. Controller Role
 
 Kafka needs a control-plane component to manage cluster metadata and partition leadership state.
 
@@ -1233,7 +1233,7 @@ The controller quorum manages cluster metadata and leadership-related control op
 
 ---
 
-# 52. KRaft Mental Model
+## 52. KRaft Mental Model
 
 In KRaft mode:
 
@@ -1255,7 +1255,7 @@ They perform control-plane responsibilities.
 
 ---
 
-# 53. Controller Quorum
+## 53. Controller Quorum
 
 A production KRaft deployment typically uses multiple controllers to maintain quorum.
 
@@ -1280,7 +1280,7 @@ The exact deployment architecture depends on the Kafka version and whether nodes
 
 ---
 
-# 54. Controller Failure
+## 54. Controller Failure
 
 A controller failure is different from a partition leader failure.
 
@@ -1298,7 +1298,7 @@ This distinction is important for administrator certification.
 
 ---
 
-# 55. Replication Factor vs ISR
+## 55. Replication Factor vs ISR
 
 Do not confuse:
 
@@ -1325,7 +1325,7 @@ Only two are currently in sync.
 
 ---
 
-# 56. Replication Factor vs Available Brokers
+## 56. Replication Factor vs Available Brokers
 
 Suppose:
 
@@ -1347,7 +1347,7 @@ The cluster's broker count and placement constraints therefore matter during top
 
 ---
 
-# 57. Failure Scenario — One Broker Down
+## 57. Failure Scenario — One Broker Down
 
 Configuration:
 
@@ -1379,7 +1379,7 @@ assuming no other limiting condition.
 
 ---
 
-# 58. Failure Scenario — Two Brokers Down
+## 58. Failure Scenario — Two Brokers Down
 
 Same configuration.
 
@@ -1406,7 +1406,7 @@ The system sacrifices write availability rather than violating the configured du
 
 ---
 
-# 59. Failure Scenario — Unclean Election
+## 59. Failure Scenario — Unclean Election
 
 Suppose:
 
@@ -1441,7 +1441,7 @@ but records that existed only on B1 can be lost.
 
 ---
 
-# 60. Failure Scenario — Follower Lag
+## 60. Failure Scenario — Follower Lag
 
 Suppose:
 
@@ -1471,7 +1471,7 @@ is a safer election candidate than B3.
 
 ---
 
-# 61. Failure Scenario — Leader Returns
+## 61. Failure Scenario — Leader Returns
 
 Suppose:
 
@@ -1493,7 +1493,7 @@ Kafka's metadata and log recovery mechanisms protect the current cluster history
 
 ---
 
-# 62. Certification Question
+## 62. Certification Question
 
 What is the difference between:
 
@@ -1517,7 +1517,7 @@ They can differ.
 
 ---
 
-# 63. Certification Question
+## 63. Certification Question
 
 A topic has:
 
@@ -1552,7 +1552,7 @@ is completely possible.
 
 ---
 
-# 64. Certification Question
+## 64. Certification Question
 
 What happens when a follower falls behind?
 
@@ -1566,7 +1566,7 @@ This can reduce the number of replicas available for ISR-based durability guaran
 
 ---
 
-# 65. Certification Question
+## 65. Certification Question
 
 Why is:
 
@@ -1594,7 +1594,7 @@ A complete durability design considers all of them.
 
 ---
 
-# 66. Certification Question
+## 66. Certification Question
 
 Why can unclean leader election cause data loss?
 
@@ -1610,7 +1610,7 @@ may no longer be recoverable through the normal replicated history.
 
 ---
 
-# 67. Certification Question
+## 67. Certification Question
 
 What does rack awareness protect against?
 
@@ -1626,7 +1626,7 @@ by distributing replicas across failure domains where configured and supported.
 
 ---
 
-# 68. Certification Question
+## 68. Certification Question
 
 Does adding a broker automatically rebalance every existing partition?
 
@@ -1636,7 +1636,7 @@ Existing replicas may remain where they are until reassignment or other placemen
 
 ---
 
-# 69. Administrator Metrics
+## 69. Administrator Metrics
 
 Important replication and broker signals include:
 
@@ -1658,7 +1658,7 @@ The exact metric names can vary by Kafka version.
 
 ---
 
-# 70. `UnderReplicatedPartitions`
+## 70. `UnderReplicatedPartitions`
 
 This is one of the most important operational indicators.
 
@@ -1681,7 +1681,7 @@ Persistent under-replication should be investigated.
 
 ---
 
-# 71. Offline Partitions
+## 71. Offline Partitions
 
 An offline partition is one for which no leader is currently available.
 
@@ -1700,7 +1700,7 @@ This is much more severe than merely having a replica outside the ISR.
 
 ---
 
-# 72. Under-Replicated vs Offline
+## 72. Under-Replicated vs Offline
 
 Important distinction:
 
@@ -1725,7 +1725,7 @@ Offline partitions indicate a much more serious availability problem.
 
 ---
 
-# 73. Capacity Planning
+## 73. Capacity Planning
 
 For a production Kafka cluster, plan for:
 
@@ -1745,7 +1745,7 @@ Do not size only for today's traffic.
 
 ---
 
-# 74. Storage Calculation
+## 74. Storage Calculation
 
 Suppose:
 
@@ -1777,7 +1777,7 @@ Do not deploy at 100% disk utilization.
 
 ---
 
-# 75. Network Planning
+## 75. Network Planning
 
 Replication generates network traffic.
 
@@ -1799,7 +1799,7 @@ A broker may therefore need significantly more network capacity than the applica
 
 ---
 
-# 76. Failure Headroom
+## 76. Failure Headroom
 
 Suppose a cluster is running:
 
@@ -1826,7 +1826,7 @@ Therefore:
 
 ---
 
-# 77. Replication and Durability Mental Model
+## 77. Replication and Durability Mental Model
 
 Memorize:
 
@@ -1854,7 +1854,7 @@ Can an out-of-sync replica become leader?
 
 ---
 
-# 78. Complete Failure Diagram
+## 78. Complete Failure Diagram
 
 ```text
                     PRODUCER
@@ -1893,7 +1893,7 @@ New Leader
 
 ---
 
-# 79. Advanced Failure Model
+## 79. Advanced Failure Model
 
 Consider:
 
@@ -1961,7 +1961,7 @@ This is the durability protection working as designed.
 
 ---
 
-# 80. Senior Interview Question
+## 80. Senior Interview Question
 
 > Why not always set `min.insync.replicas` equal to the replication factor?
 
@@ -1988,7 +1988,7 @@ The correct setting depends on the durability and availability requirements.
 
 ---
 
-# 81. Senior Interview Question
+## 81. Senior Interview Question
 
 > Why not always enable unclean leader election?
 
@@ -2007,7 +2007,7 @@ The correct decision depends on business tolerance for data loss.
 
 ---
 
-# 82. Senior Interview Question
+## 82. Senior Interview Question
 
 > Why can a three-replica Kafka cluster still lose data?
 
@@ -2027,7 +2027,7 @@ Replication improves durability; it does not make data indestructible.
 
 ---
 
-# 83. Senior Interview Question
+## 83. Senior Interview Question
 
 > Why can a Kafka cluster become unavailable even though replicas exist?
 
@@ -2059,7 +2059,7 @@ The partition becomes unavailable.
 
 ---
 
-# 84. Administrator Runbook — Under-Replication
+## 84. Administrator Runbook — Under-Replication
 
 When:
 
@@ -2088,7 +2088,7 @@ Find the root cause first.
 
 ---
 
-# 85. Administrator Runbook — Offline Partition
+## 85. Administrator Runbook — Offline Partition
 
 When:
 
@@ -2116,7 +2116,7 @@ An offline partition means clients cannot normally access that partition through
 
 ---
 
-# 86. Administrator Runbook — Broker Failure
+## 86. Administrator Runbook — Broker Failure
 
 When a broker fails:
 
@@ -2137,7 +2137,7 @@ Recovery is not finished merely because the broker process is back online.
 
 ---
 
-# 87. Administrator Runbook — Recovery
+## 87. Administrator Runbook — Recovery
 
 After broker recovery:
 
@@ -2165,7 +2165,7 @@ recovery rate
 
 ---
 
-# 88. Exam Drill
+## 88. Exam Drill
 
 ### Question 1
 
@@ -2194,7 +2194,7 @@ There are still three assigned replicas, but only two are currently in sync.
 
 ---
 
-# 89. Exam Drill
+## 89. Exam Drill
 
 ### Question 2
 
@@ -2216,7 +2216,7 @@ Yes, assuming the remaining two ISR replicas can satisfy all other conditions.
 
 ---
 
-# 90. Exam Drill
+## 90. Exam Drill
 
 ### Question 3
 
@@ -2228,7 +2228,7 @@ Potential data loss because the elected replica may not contain all records from
 
 ---
 
-# 91. Exam Drill
+## 91. Exam Drill
 
 ### Question 4
 
@@ -2240,7 +2240,7 @@ It can be removed from ISR, reducing the number of synchronized replicas.
 
 ---
 
-# 92. Exam Drill
+## 92. Exam Drill
 
 ### Question 5
 
@@ -2254,7 +2254,7 @@ Offline means no leader is available.
 
 ---
 
-# 93. Exam Drill
+## 93. Exam Drill
 
 ### Question 6
 
@@ -2266,7 +2266,7 @@ To distribute replicas across failure domains and reduce the risk that a single 
 
 ---
 
-# 94. Exam Drill
+## 94. Exam Drill
 
 ### Question 7
 
@@ -2278,7 +2278,7 @@ The broker becomes available for placement, but existing partition data is not a
 
 ---
 
-# 95. Exam Drill
+## 95. Exam Drill
 
 ### Question 8
 
@@ -2290,7 +2290,7 @@ Replication itself consumes storage, network, disk I/O and recovery resources. T
 
 ---
 
-# 96. Certification Knowledge Checklist
+## 96. Certification Knowledge Checklist
 
 You should be able to explain:
 
@@ -2325,7 +2325,7 @@ You should be able to explain:
 
 ---
 
-# 97. Final Mental Model
+## 97. Final Mental Model
 
 The entire chapter can be reduced to:
 
@@ -2392,7 +2392,7 @@ possible data loss
 
 ---
 
-# 98. Chapter 6 Takeaway
+## 98. Chapter 6 Takeaway
 
 The most important certification principle is:
 
@@ -2429,9 +2429,9 @@ Kafka architecture is about choosing where that balance belongs for the business
 
 ---
 
-# 99. Next Chapter
+## 99. Next Chapter
 
-## Chapter 7 — Kafka Administration and Operations Deep Dive
+# Chapter 7 — Kafka Administration and Operations Deep Dive
 
 The next chapter will cover:
 

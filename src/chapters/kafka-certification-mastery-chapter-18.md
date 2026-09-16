@@ -2033,7 +2033,7 @@ Recommended references:
 
 # Next Chapter
 
-## Chapter 18 — Kafka Networking, Listeners, Protocols & Connectivity Deep Dive
+# Chapter 18 — Kafka Networking, Listeners, Protocols & Connectivity Deep Dive
 
 Topics:
 
