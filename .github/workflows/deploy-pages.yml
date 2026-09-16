@@ -39,7 +39,9 @@ jobs:
         run: mdbook-mermaid install src
 
       - name: Build
-        run: mdbook build
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          mdbook build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
