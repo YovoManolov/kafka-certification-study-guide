@@ -38,7 +38,7 @@
 
 ---
 
-> Certification track: CCDAK + CCAAK  
+> Certification track: CCDAK + CCAAK
 > Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
 
 ---
@@ -112,13 +112,13 @@ This is why partitions are so important.
 
 A Kafka record can be thought of as:
 
-```text
-Record
- ├── key
- ├── value
- ├── headers
- ├── timestamp
- └── offset
+```mermaid
+flowchart TD
+    R["Record"] --> K["key"]
+    R --> V["value"]
+    R --> H["headers"]
+    R --> T["timestamp"]
+    R --> O["offset"]
 ```
 
 Example:

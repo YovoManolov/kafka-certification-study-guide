@@ -227,7 +227,7 @@ Protocol Buffers, commonly called Protobuf, is another schema-based serializatio
 
 Example:
 
-```Protobuf 
+```Protobuf
 message Order {
   required string id = 1;
   required double amount = 2;
@@ -303,7 +303,7 @@ Conceptually:
     Kafka
       |
       +--> Event data
-    
+
 Schema Registry
       |
       +--> Schema definitions
@@ -1970,9 +1970,9 @@ They determine how schemas are grouped and therefore how compatibility relations
 
 <details>
 <summary>Answer</summary>
-1. Prefer additive 
+1. Prefer additive
 2. backward-compatible changes
-3. appropriate defaults 
+3. appropriate defaults
 4. semantic stability
 5. automated compatibility testing
 6. controlled deployment.
@@ -2014,7 +2014,7 @@ Memorize this:
 
 The most important principle is:
 
-> A Kafka schema is not just a serialization detail. 
+> A Kafka schema is not just a serialization detail.
 > It is a contract between independently evolving producers and consumers.
 
 And at certification level, always connect:

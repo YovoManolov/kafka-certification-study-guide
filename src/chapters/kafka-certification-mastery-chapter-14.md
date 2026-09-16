@@ -209,7 +209,7 @@ The producer proceeds without waiting for confirmation.
 
 * weakest delivery assurance
 
-For reliability-sensitive workloads, this is generally unsuitable. 
+For reliability-sensitive workloads, this is generally unsuitable.
 
 #### 3.1.2. acks=1
 
@@ -229,7 +229,7 @@ Conceptually:
 
 ```
 
-Followers may still be catching up. If the leader fails before followers have replicated the record, 
+Followers may still be catching up. If the leader fails before followers have replicated the record,
 the record may be vulnerable depending on the election/recovery situation.
 
 #### 3.1.3. acks=all
@@ -329,7 +329,7 @@ RF = 3
 ISR = {B1, B2}
 ```
 
-If **B1** is leader and fails, **B2** can potentially become leader. But if `ISR = {B1}` 
+If **B1** is leader and fails, **B2** can potentially become leader. But if `ISR = {B1}`
 and **B1** fails, there may be no in-sync follower available.
 This can create an availability problem.
 
@@ -469,7 +469,7 @@ ISR = {B1,B2,B3}
 
 **B2** and **B3** fail. Only **B1** remains `ISR = {B1}` now `min.insync.replicas = 2` cannot be satisfied.
 
-With `acks=all` new writes may fail. This is an important distinction **Existing leader availability** 
+With `acks=all` new writes may fail. This is an important distinction **Existing leader availability**
 is not equivalent to **write availability**
 
 ## 20. Availability vs Write Availability
@@ -562,7 +562,7 @@ m4 may be lost from the active log. Thus `Availability ↑` and `Durability ↓`
 
 Remember:
 
->Unclean leader election favors availability over preserving the latest acknowledged data 
+>Unclean leader election favors availability over preserving the latest acknowledged data
 > when no in-sync replica is available.
 
 This is a classic administrator exam concept.
@@ -586,7 +586,7 @@ Better:
 
 ```text
        Rack A        Rack B        Rack C
-        
+
         B1            B2            B3
          \             |            /
           \            |           /
@@ -841,7 +841,7 @@ Examples:
 * Operational mistake
 * Security incident
 
-A DR architecture needs 
+A DR architecture needs
 
 1. backup/recovery strategy
 2. replication strategy
@@ -903,7 +903,7 @@ Cluster A
 B1 <--> B2 <--> B3
 ```
 
-protects against some failures but if an operator accidentally deletes data: ``delete topic/data`` 
+protects against some failures but if an operator accidentally deletes data: ``delete topic/data``
 replication may reproduce the operational state across replicas.
 
 Replication is not a replacement for appropriate backup/recovery mechanisms.
@@ -1312,6 +1312,7 @@ Administrators should:
 9. [x] maintain DR
 
 ## 69. Reliability Checklist
+
 ### Producer
 
 1. [x] Appropriate acks
@@ -1411,7 +1412,7 @@ ISR = {B1}
 
 <details>
 <summary>Answer</summary>
-They fail because ``1 < 2``
+They fail because <code>1 &lt; 2</code>
 
 This protects durability at the cost of write availability.
 </details>
@@ -1479,7 +1480,7 @@ Do not intentionally introduce another failure into an already degraded cluster.
 
 ## 75. Certification Scenario — Recovery
 
-A broker returns after several hours. Metrics show ``UnderReplicatedPartitions = 500`` 
+A broker returns after several hours. Metrics show ``UnderReplicatedPartitions = 500``
 
 Question: **What should you do?**
 
@@ -1537,7 +1538,7 @@ m3
 
 and crashed before committing the relevant offset. After restart, it may process `m3` again.
 
-Therefore, `at-least-once` processing can produce duplicates. 
+Therefore, `at-least-once` processing can produce duplicates.
 Applications should be designed accordingly.
 
 ## 79. Reliability and Idempotency
@@ -1773,6 +1774,5 @@ If you remember only one diagram from this chapter, remember this:
 
 The key principle is:
 
-> Kafka reliability is the combination of replication, correct acknowledgment semantics, 
+> Kafka reliability is the combination of replication, correct acknowledgment semantics,
  failure-domain-aware placement, safe operations, monitoring, and tested recovery procedures.
-

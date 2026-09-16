@@ -6,7 +6,7 @@
 
 ---
 
-## 17.1 Learning Objectives
+## 18.1 Learning Objectives
 
 By the end of this chapter, you should be able to:
 
@@ -26,33 +26,26 @@ By the end of this chapter, you should be able to:
 
 ---
 
-## 17.2 The Golden Rule of Kafka Tuning
+## 18.2 The Golden Rule of Kafka Tuning
 
 > **Do not tune Kafka because a configuration looks suboptimal. Tune Kafka because measurements demonstrate a bottleneck or because a business requirement requires a specific behavior.**
 
 A useful engineering loop is:
 
-```text
-Requirement
-   ↓
-Architecture
-   ↓
-Capacity
-   ↓
-Configuration
-   ↓
-Observability
-   ↓
-Measurement
-   ↓
-Controlled tuning
-   ↓
-Validation
+```mermaid
+flowchart TD
+    A["Requirement"] --> B["Architecture"]
+    B --> C["Capacity"]
+    C --> D["Configuration"]
+    D --> E["Observability"]
+    E --> F["Measurement"]
+    F --> G["Controlled tuning"]
+    G --> H["Validation"]
 ```
 
 ---
 
-## 17.3 Kafka Configuration Layers
+## 18.3 Kafka Configuration Layers
 
 Kafka configuration exists at multiple scopes:
 
@@ -109,7 +102,7 @@ For applicable KRaft settings, dynamic configuration can take precedence over st
 
 ---
 
-## 17.4 KRaft Configuration
+## 18.4 KRaft Configuration
 
 Modern Kafka deployments use KRaft rather than ZooKeeper.
 
@@ -153,7 +146,7 @@ process.roles=controller
 
 ---
 
-## 17.5 Storage Configuration
+## 18.5 Storage Configuration
 
 Kafka is a disk-backed distributed log.
 
@@ -185,7 +178,7 @@ Disk capacity alone does not prove sufficient performance.
 
 ---
 
-## 17.6 Disk Capacity Planning
+## 18.6 Disk Capacity Planning
 
 A simplified model:
 
@@ -221,7 +214,7 @@ Avoid designing production storage to run continuously near full capacity.
 
 ---
 
-## 17.7 Retention
+## 18.7 Retention
 
 Common retention settings:
 
@@ -244,7 +237,7 @@ A record is part of a segment, and eligible segments are cleaned asynchronously.
 
 ---
 
-## 17.8 Log Segments
+## 18.8 Log Segments
 
 Important settings:
 
@@ -269,7 +262,7 @@ Deletion / compaction
 
 ---
 
-## 17.9 Cleanup Policies
+## 18.9 Cleanup Policies
 
 Possible policies include:
 
@@ -299,7 +292,7 @@ Combines key-based compaction with retention-based deletion.
 
 ---
 
-## 17.10 Log Compaction
+## 18.10 Log Compaction
 
 Compaction is useful for state topics.
 
@@ -327,7 +320,7 @@ A tombstone represents deletion of a key.
 
 ---
 
-## 17.11 Reliability: Replication Factor
+## 18.11 Reliability: Replication Factor
 
 Replication factor defines how many replicas of a partition exist.
 
@@ -351,7 +344,7 @@ Higher RF generally increases durability but also increases:
 
 ---
 
-## 17.12 ISR — In-Sync Replicas
+## 18.12 ISR — In-Sync Replicas
 
 ISR means **In-Sync Replicas**.
 
@@ -384,7 +377,7 @@ ISR count     = currently in-sync replicas
 
 ---
 
-## 17.13 `min.insync.replicas`
+## 18.13 `min.insync.replicas`
 
 Example:
 
@@ -424,7 +417,7 @@ RF ≠ min.insync.replicas
 
 ---
 
-## 17.14 `acks`
+## 18.14 `acks`
 
 Producer acknowledgment modes:
 
@@ -472,7 +465,7 @@ failure domains
 
 ---
 
-## 17.15 Unclean Leader Election
+## 18.15 Unclean Leader Election
 
 Key property:
 
@@ -508,7 +501,7 @@ Unclean election
 
 ---
 
-## 17.16 Failure-Domain Awareness
+## 18.16 Failure-Domain Awareness
 
 RF alone does not guarantee resilience against an entire rack or availability-zone failure.
 
@@ -540,7 +533,7 @@ meaningful fault tolerance
 
 ---
 
-## 17.17 Auto Topic Creation
+## 18.17 Auto Topic Creation
 
 Many production environments prefer:
 
@@ -554,7 +547,7 @@ Explicit provisioning improves governance.
 
 ---
 
-## 17.18 Listener Architecture
+## 18.18 Listener Architecture
 
 Two concepts are essential:
 
@@ -587,7 +580,7 @@ These are not interchangeable.
 
 ---
 
-## 17.19 Classic `advertised.listeners` Failure
+## 18.19 Classic `advertised.listeners` Failure
 
 A client can bootstrap successfully and then fail to connect:
 
@@ -617,7 +610,7 @@ Successful bootstrap therefore does not prove end-to-end connectivity.
 
 ---
 
-## 17.20 Internal and External Listeners
+## 18.20 Internal and External Listeners
 
 Example:
 
@@ -637,7 +630,7 @@ This is common in cloud and containerized deployments.
 
 ---
 
-## 17.21 Listener Security Protocol Mapping
+## 18.21 Listener Security Protocol Mapping
 
 Example:
 
@@ -661,7 +654,7 @@ SASL_SSL
 
 ---
 
-## 17.22 Broker Threads
+## 18.22 Broker Threads
 
 Important settings:
 
@@ -678,7 +671,7 @@ If CPU is already saturated, adding threads may increase contention.
 
 ---
 
-## 17.23 CPU
+## 18.23 CPU
 
 Kafka CPU can be consumed by:
 
@@ -702,7 +695,7 @@ CPU ↔ network/storage
 
 ---
 
-## 17.24 Producer Configuration
+## 18.24 Producer Configuration
 
 Important settings:
 
@@ -722,7 +715,7 @@ Producer performance is strongly influenced by batching and compression.
 
 ---
 
-## 17.25 `linger.ms`
+## 18.25 `linger.ms`
 
 `linger.ms` allows the producer to wait briefly for more records so batches can become larger.
 
@@ -746,7 +739,7 @@ Kafka defaults are version-dependent. For example, Kafka 4.0 changed the default
 
 ---
 
-## 17.26 `batch.size`
+## 18.26 `batch.size`
 
 `batch.size` controls the target maximum size of a producer batch per partition.
 
@@ -766,7 +759,7 @@ Increasing `batch.size` does not guarantee larger batches if traffic is sparse.
 
 ---
 
-## 17.27 Producer Buffer Memory
+## 18.27 Producer Buffer Memory
 
 `buffer.memory` provides producer memory for records waiting to be sent.
 
@@ -786,7 +779,7 @@ Producer-side latency can therefore be caused by a slow broker or network.
 
 ---
 
-## 17.28 In-Flight Requests
+## 18.28 In-Flight Requests
 
 `max.in.flight.requests.per.connection` limits unacknowledged requests outstanding on one connection.
 
@@ -801,7 +794,7 @@ But ordering and retry behavior must be considered together with:
 
 ---
 
-## 17.29 Consumer Fetch Configuration
+## 18.29 Consumer Fetch Configuration
 
 Important settings:
 
@@ -822,7 +815,7 @@ throughput
 
 ---
 
-## 17.30 `fetch.min.bytes`
+## 18.30 `fetch.min.bytes`
 
 Larger values can improve throughput by reducing request frequency.
 
@@ -836,7 +829,7 @@ larger minimum
 
 ---
 
-## 17.31 `fetch.max.wait.ms`
+## 18.31 `fetch.max.wait.ms`
 
 If enough data is not immediately available to satisfy `fetch.min.bytes`, the broker can wait up to `fetch.max.wait.ms`.
 
@@ -844,7 +837,7 @@ Consider both settings together.
 
 ---
 
-## 17.32 `max.partition.fetch.bytes`
+## 18.32 `max.partition.fetch.bytes`
 
 This limits the amount of data returned for a partition in a fetch.
 
@@ -854,7 +847,7 @@ The effective fetch behavior depends on multiple total and per-partition limits.
 
 ---
 
-## 17.33 Message Size Limits
+## 18.33 Message Size Limits
 
 Large messages require coordinated configuration across:
 
@@ -878,7 +871,7 @@ Always verify exact limits and relationships for the Kafka version being used.
 
 ---
 
-## 17.34 JVM Heap and Page Cache
+## 18.34 JVM Heap and Page Cache
 
 Kafka memory is not simply:
 
@@ -908,7 +901,7 @@ Therefore:
 
 ---
 
-## 17.35 Garbage Collection
+## 18.35 Garbage Collection
 
 Excessive heap pressure can cause:
 
@@ -939,7 +932,7 @@ Investigate:
 
 ---
 
-## 17.36 File Descriptors
+## 18.36 File Descriptors
 
 Kafka opens many files and network connections.
 
@@ -956,7 +949,7 @@ Production systems should configure sufficient OS limits and monitor them.
 
 ---
 
-## 17.37 Connection Capacity
+## 18.37 Connection Capacity
 
 Kafka brokers handle connections from:
 
@@ -972,7 +965,7 @@ Connection count is therefore a capacity-planning dimension.
 
 ---
 
-## 17.38 Capacity Planning
+## 18.38 Capacity Planning
 
 Include:
 
@@ -1000,7 +993,7 @@ with RF=3, the cluster must handle substantially more internal traffic than prod
 
 ---
 
-## 17.39 Partition Capacity Planning
+## 18.39 Partition Capacity Planning
 
 Suppose:
 
@@ -1028,7 +1021,7 @@ But validate:
 
 ---
 
-## 17.40 Hot Partitions
+## 18.40 Hot Partitions
 
 If one key dominates:
 
@@ -1060,7 +1053,7 @@ Changing partitions can affect key mapping and ordering assumptions.
 
 ---
 
-## 17.41 Consumer Group Scaling
+## 18.41 Consumer Group Scaling
 
 Fundamental rule:
 
@@ -1089,7 +1082,7 @@ automatically more throughput
 
 ---
 
-## 17.42 Replication and Recovery Capacity
+## 18.42 Replication and Recovery Capacity
 
 Kafka must be sized for degraded operation as well as normal operation.
 
@@ -1125,7 +1118,7 @@ longer degraded period
 
 ---
 
-## 17.43 Headroom
+## 18.43 Headroom
 
 Headroom protects against:
 
@@ -1152,7 +1145,7 @@ operational margin
 
 ---
 
-## 17.44 Performance Tuning Order
+## 18.44 Performance Tuning Order
 
 A strong sequence is:
 
@@ -1172,7 +1165,7 @@ A strong sequence is:
 
 ---
 
-## 17.45 Producer Throughput Investigation
+## 18.45 Producer Throughput Investigation
 
 Investigate:
 
@@ -1208,7 +1201,7 @@ High buffer wait
 
 ---
 
-## 17.46 Consumer Throughput Investigation
+## 18.46 Consumer Throughput Investigation
 
 Investigate:
 
@@ -1228,7 +1221,7 @@ If application processing is slow, increasing broker fetch size may not solve th
 
 ---
 
-## 17.47 Observability Before Tuning
+## 18.47 Observability Before Tuning
 
 Useful metric categories:
 
@@ -1299,7 +1292,7 @@ filesystem capacity
 
 ---
 
-## 17.48 Request Handler Idle
+## 18.48 Request Handler Idle
 
 Low request-handler idle time can indicate broker request-processing pressure.
 
@@ -1316,7 +1309,7 @@ Determine why requests are expensive first:
 
 ---
 
-## 17.49 Network Processor Idle
+## 18.49 Network Processor Idle
 
 Low network processor idle time can indicate network-thread pressure.
 
@@ -1331,7 +1324,7 @@ Investigate:
 
 ---
 
-## 17.50 Replication Throttling
+## 18.50 Replication Throttling
 
 Replication traffic can compete with client traffic.
 
@@ -1355,7 +1348,7 @@ Aggressive recovery can saturate disks and networks and hurt production traffic.
 
 ---
 
-## 17.51 Dynamic Configuration
+## 18.51 Dynamic Configuration
 
 Kafka supports dynamic configuration for many properties.
 
@@ -1381,7 +1374,7 @@ Not every configuration is dynamically changeable.
 
 ---
 
-## 17.52 Production Configuration Baseline
+## 18.52 Production Configuration Baseline
 
 ### Architecture
 
@@ -1433,7 +1426,7 @@ Not every configuration is dynamically changeable.
 
 ---
 
-## 17.53 Configuration Change Procedure
+## 18.53 Configuration Change Procedure
 
 A production configuration change should follow:
 
@@ -1451,7 +1444,7 @@ A production configuration change should follow:
 
 ---
 
-## 17.54 Scenario Drill — Producer Latency
+## 18.54 Scenario Drill — Producer Latency
 
 Metrics:
 
@@ -1481,7 +1474,7 @@ Investigate:
 
 ---
 
-## 17.55 Scenario Drill — Disk Bottleneck
+## 18.55 Scenario Drill — Disk Bottleneck
 
 Symptoms:
 
@@ -1511,7 +1504,7 @@ Increasing network threads is unlikely to solve the root cause.
 
 ---
 
-## 17.56 Scenario Drill — Network Bottleneck
+## 18.56 Scenario Drill — Network Bottleneck
 
 Symptoms:
 
@@ -1534,7 +1527,7 @@ Compression may reduce network usage but increases CPU cost.
 
 ---
 
-## 17.57 Scenario Drill — Hot Partition
+## 18.57 Scenario Drill — Hot Partition
 
 One partition has dramatically higher traffic and corresponding consumer lag.
 
@@ -1554,7 +1547,7 @@ The hot partition remains a single partition assignment within the consumer grou
 
 ---
 
-## 17.58 Scenario Drill — Broker Failure
+## 18.58 Scenario Drill — Broker Failure
 
 Configuration:
 
@@ -1582,7 +1575,7 @@ Writes requiring two ISR replicas can fail.
 
 ---
 
-## 17.59 Scenario Drill — Two Failures
+## 18.59 Scenario Drill — Two Failures
 
 Configuration:
 
@@ -1613,7 +1606,7 @@ rather than electing an out-of-sync replica and risking data loss.
 
 ---
 
-## 17.60 Scenario Drill — Retention Seems Late
+## 18.60 Scenario Drill — Retention Seems Late
 
 A topic has:
 
@@ -1638,7 +1631,7 @@ Check:
 
 ---
 
-## 17.61 Scenario Drill — Bootstrap Works, Broker Connections Fail
+## 18.61 Scenario Drill — Bootstrap Works, Broker Connections Fail
 
 Symptoms:
 
@@ -1666,7 +1659,7 @@ Check:
 
 ---
 
-## 17.62 Scenario Drill — `server.properties` Appears Ignored
+## 18.62 Scenario Drill — `server.properties` Appears Ignored
 
 Static configuration:
 
@@ -1686,7 +1679,7 @@ Always determine whether the property has a dynamic override before assuming the
 
 ---
 
-## 17.63 Scenario Drill — Increasing Heap Hurts Performance
+## 18.63 Scenario Drill — Increasing Heap Hurts Performance
 
 Possible explanation:
 
@@ -1711,41 +1704,41 @@ network buffers
 
 ---
 
-## 17.64 Certification Traps
+## 18.64 Certification Traps
 
-1. **More partitions always improve performance.**  
+1. **More partitions always improve performance.**
    False. They add parallelism and overhead.
 
-2. **Higher replication is free.**  
+2. **Higher replication is free.**
    False. It increases storage, network, and recovery costs.
 
-3. **Increase JVM heap whenever Kafka is slow.**  
+3. **Increase JVM heap whenever Kafka is slow.**
    False. The bottleneck may be page cache, disk, network, CPU, or partition skew.
 
-4. **Increase all broker thread counts.**  
+4. **Increase all broker thread counts.**
    False. Thread tuning should follow measurements.
 
-5. **`listeners` and `advertised.listeners` are the same.**  
+5. **`listeners` and `advertised.listeners` are the same.**
    False.
 
-6. **`min.insync.replicas` is the same as RF.**  
+6. **`min.insync.replicas` is the same as RF.**
    False.
 
-7. **`acks=all` guarantees no data loss under every failure.**  
+7. **`acks=all` guarantees no data loss under every failure.**
    False.
 
-8. **Retention deletes records exactly when their timestamp expires.**  
+8. **Retention deletes records exactly when their timestamp expires.**
    False.
 
-9. **More consumers always improve throughput.**  
+9. **More consumers always improve throughput.**
    False.
 
-10. **Dynamic configuration always overrides everything.**  
+10. **Dynamic configuration always overrides everything.**
     False. Scope and property support matter.
 
 ---
 
-## 17.65 Production Readiness Checklist
+## 18.65 Production Readiness Checklist
 
 ### Architecture
 
@@ -1804,7 +1797,7 @@ network buffers
 
 ---
 
-## 17.66 Certification Master Matrix
+## 18.66 Certification Master Matrix
 
 | Concept | What to Remember | Typical Trap |
 |---|---|---|
@@ -1834,7 +1827,7 @@ network buffers
 
 ---
 
-## 17.67 Final Cheat Sheet
+## 18.67 Final Cheat Sheet
 
 ### KRaft
 
@@ -1935,7 +1928,7 @@ measure
 
 ---
 
-## 17.68 Senior-Level Mental Model
+## 18.68 Senior-Level Mental Model
 
 Kafka configuration is a set of trade-offs:
 
@@ -1987,7 +1980,7 @@ This trade-off model is more valuable than memorizing isolated numbers.
 
 ---
 
-## 17.69 Chapter Summary
+## 18.69 Chapter Summary
 
 Remember:
 
@@ -2031,23 +2024,6 @@ Recommended references:
 
 ---
 
-# Next Chapter
+## Next Chapter
 
-# Chapter 18 — Kafka Networking, Listeners, Protocols & Connectivity Deep Dive
-
-Topics:
-
-- TCP/IP fundamentals for Kafka
-- DNS and hostname resolution
-- `listeners` and `advertised.listeners`
-- listener security protocols
-- SSL/TLS
-- SASL
-- authentication versus authorization
-- internal/external connectivity
-- NAT and load balancers
-- Docker/Kubernetes networking
-- cloud networking
-- packet-flow troubleshooting
-- common connectivity failures
-- certification scenario drills
+[Chapter 19 — Kafka Networking, Listeners, Protocols & Connectivity Deep Dive](kafka-certification-mastery-chapter-19.md)

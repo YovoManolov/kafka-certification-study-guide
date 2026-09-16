@@ -1,17 +1,16 @@
 # Summary
 
-Welcome to the Kafka Certification Mastery repository. Below is a comprehensive table of contents referencing all chapters and resources in this project.
+Welcome to the Kafka Certification Mastery repository.
 
-## Chapters
+## Study Chapters
 
 - [**Chapter 1 — Kafka Mental Model & Fundamentals**](chapters/kafka-certification-mastery-chapter-1.md)
-    - Core concepts: Topics, Partitions, Brokers, Producers, Consumers, and Offsets.
-- [**Chapter 2 — Kafka Architecture Deep Dive**](chapters/kafka-certification-mastery-chapter-2.md)
+- [**Chapter 2 — Kafka Architecture KRaft, Control Plane vs Data Plane, and Broker internals Deep Dive**](chapters/kafka-certification-mastery-chapter-2.md)
 - [**Chapter 3 — Topics, Partitions, Offsets and Log Internals**](chapters/kafka-certification-mastery-chapter-3.md)
-- [**Chapter 4 — Producers Deep Dive**](chapters/kafka-certification-mastery-chapter-4.md)
-- [**Chapter 5 — Consumers and Consumer Groups Deep Dive**](chapters/kafka-certification-mastery-chapter-5.md)
-- [**Chapter 6 — Kafka Storage, Replication, ISR and Fault Tolerance**](chapters/kafka-certification-mastery-chapter-6.md)
-- [**Chapter 7 — Consumer Groups**](chapters/kafka-certification-mastery-chapter-7.md)
+- [**Chapter 4 — Producers Idempotence, Transactions, and Performance tuning Deep Dive**](chapters/kafka-certification-mastery-chapter-4.md)
+- [**Chapter 5 — Consumers and Consumer Groups Deep Dive Group coordination, Rebalancing, and Offset management**](chapters/kafka-certification-mastery-chapter-5.md)
+- [**Chapter 6 — Kafka Storage, Replication, ISR and Fault Tolerance, Durability, ISR, High Watermark, and Failure scenarios**](chapters/kafka-certification-mastery-chapter-6.md)
+- [**Chapter 7 — Consumer Groups Detailed scenarios, Assignment strategies, and Operations**](chapters/kafka-certification-mastery-chapter-7.md)
 - [**Chapter 8 — Kafka Administration & Operations Deep Dive**](chapters/kafka-certification-mastery-chapter-8.md)
 - [**Chapter 9 — Kafka Security Deep Dive**](chapters/kafka-certification-mastery-chapter-9.md)
 - [**Chapter 10 — Kafka Connect Deep Dive**](chapters/kafka-certification-mastery-chapter-10.md)
@@ -21,19 +20,28 @@ Welcome to the Kafka Certification Mastery repository. Below is a comprehensive 
 - [**Chapter 14 — Kafka Reliability, Fault Tolerance & Disaster Recovery Deep Dive**](chapters/kafka-certification-mastery-chapter-14.md)
 - [**Chapter 15 — Kafka Schema Management & Data Contracts Deep Dive**](chapters/kafka-certification-mastery-chapter-15.md)
 - [**Chapter 16 — Kafka Transactions & Exactly-Once Semantics Deep Dive**](chapters/kafka-certification-mastery-chapter-16.md)
+- [**Chapter 17 — Kafka CLI, AdminClient & Certification Command Mastery**](chapters/kafka-certification-mastery-chapter-17.md)
+- [**Chapter 18 — Kafka Production Configuration, Tuning & Configuration Reference**](chapters/kafka-certification-mastery-chapter-18.md)
+- [**Chapter 19 — Kafka Networking, Listeners, Protocols & Connectivity Deep Dive**](chapters/kafka-certification-mastery-chapter-19.md)
+- [**Chapter 20 — Kafka Troubleshooting Deep Dive: Diagnosis, Metrics, Incidents & Recovery**](chapters/kafka-certification-mastery-chapter-20.md)
+- [**Chapter 21 — Kafka Security Deep Dive: TLS, SASL, ACLs, Authentication & Authorization**](chapters/kafka-certification-mastery-chapter-21.md)
+- [**Chapter 22 — Kafka Certification Scenario Drills: Developer + Administrator**](chapters/kafka-certification-mastery-chapter-22.md)
 
-## Supplementary Resources
+## Certification Path
 
-- [**Kafka Internal Architecture**](supplementary-resources/kafka-certification-mastery-internal-architecture.md)
-- [**Kafka Developer Certification Mock Exam**](kafka_developer_certification_mock_exam.md)
+- [Certification Path](certification-path.md)
+- [Study Planning](planning.md)
+- [Quick Reference Sheet](sheet.md)
+- [Internal Architecture Supplement](supplementary-resources/kafka-certification-mastery-internal-architecture.md)
 
-## Mock Exames Planning
+## Interactive Mock Exams
 
-- [**Mock Exam 1**](mocks/mock-exam-1.md)
-- [**Mock Exam 2**](mocks/mock-exam-2.md)
-- [**Mock Exam 3**](mocks/mock-exam-3.md)
-- [**Mock Exam 4**](mocks/mock-exam-4.md)
-- [**Mock Exam 5**](mocks/mock-exam-5.md)
-- [**Mock Exam 6**](mocks/mock-exam-6.md)
-- [**Mock Exam 7**](mocks/mock-exam-7.md)
-- [**Mock Exam 8**](mocks/mock-exam-8.md)
+- [**Interactive Mock Exams — Exam Center**](exams/index.md)
+- [Mock Exam 1 — Mock Exam A — Developer Fundamentals](exams/mock-1.md)
+- [Mock Exam 2 — Mock Exam B — Producer / Consumer](exams/mock-2.md)
+- [Mock Exam 3 — Mock Exam C — Schema / Connect / Streams](exams/mock-3.md)
+- [Mock Exam 4 — Mock Exam D — Administrator](exams/mock-4.md)
+- [Mock Exam 5 — Mock Exam E — Security / Networking](exams/mock-5.md)
+- [Mock Exam 6 — Mock Exam F — Operations / Troubleshooting](exams/mock-6.md)
+- [Mock Exam 7 — Mock Exam G — Full CCDAK Simulation](exams/mock-7.md)
+- [Mock Exam 8 — Mock Exam H — Full CCAAK Simulation](exams/mock-8.md)

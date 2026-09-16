@@ -129,11 +129,11 @@
 - [Below 36: Rebuild the Fundamentals](#below-36-rebuild-the-fundamentals)
 
 ---
-**Version:** 1.0  
-**Date:** August 2026  
-**Format:** Full-length practice examination  
-**Recommended time:** 120 minutes  
-**Questions:** 60  
+**Version:** 1.0
+**Date:** August 2026
+**Format:** Full-length practice examination
+**Recommended time:** 120 minutes
+**Questions:** 60
 **Difficulty:** Intermediate → Advanced
 
 ---
@@ -186,9 +186,9 @@ It emphasizes:
 
 What is the primary unit of parallelism in a Kafka topic?
 
-A. Broker  
-B. Partition  
-C. Consumer  
+A. Broker
+B. Partition
+C. Consumer
 D. Producer
 
 ---
@@ -197,9 +197,9 @@ D. Producer
 
 A topic has three partitions. A producer sends records using a key. What determines the partition when the default key-based partitioning behavior is used?
 
-A. The broker with the lowest ID  
-B. The consumer group ID  
-C. A hash of the record key  
+A. The broker with the lowest ID
+B. The consumer group ID
+C. A hash of the record key
 D. The topic creation timestamp
 
 ---
@@ -208,9 +208,9 @@ D. The topic creation timestamp
 
 Which statement about ordering is correct?
 
-A. Kafka guarantees global ordering across all partitions of a topic.  
-B. Kafka guarantees ordering of records within a partition.  
-C. Kafka guarantees ordering across all consumer groups.  
+A. Kafka guarantees global ordering across all partitions of a topic.
+B. Kafka guarantees ordering of records within a partition.
+C. Kafka guarantees ordering across all consumer groups.
 D. Kafka guarantees ordering across all topics.
 
 ---
@@ -219,9 +219,9 @@ D. Kafka guarantees ordering across all topics.
 
 What is the purpose of a Kafka broker?
 
-A. It stores and serves Kafka records and participates in cluster operations.  
-B. It only creates consumer groups.  
-C. It only performs serialization.  
+A. It stores and serves Kafka records and participates in cluster operations.
+B. It only creates consumer groups.
+C. It only performs serialization.
 D. It exists exclusively to run Kafka Streams applications.
 
 ---
@@ -230,9 +230,9 @@ D. It exists exclusively to run Kafka Streams applications.
 
 A topic contains six partitions and a consumer group contains two consumers. Assuming all consumers are eligible for assignment, approximately how many partitions can each consumer process?
 
-A. 1  
-B. 2  
-C. 3  
+A. 1
+B. 2
+C. 3
 D. 6
 
 ---
@@ -243,9 +243,9 @@ D. 6
 
 What is the main purpose of the producer `acks` configuration?
 
-A. It controls consumer polling frequency.  
-B. It controls the level of broker acknowledgment required for a produce request.  
-C. It controls partition count.  
+A. It controls consumer polling frequency.
+B. It controls the level of broker acknowledgment required for a produce request.
+C. It controls partition count.
 D. It controls retention.
 
 ---
@@ -254,9 +254,9 @@ D. It controls retention.
 
 What is the main benefit of enabling idempotent producer behavior?
 
-A. It prevents duplicate records caused by producer retries from being appended multiple times in the relevant sequence.  
-B. It guarantees global ordering across topics.  
-C. It eliminates the need for replication.  
+A. It prevents duplicate records caused by producer retries from being appended multiple times in the relevant sequence.
+B. It guarantees global ordering across topics.
+C. It eliminates the need for replication.
 D. It automatically creates schemas.
 
 ---
@@ -265,9 +265,9 @@ D. It automatically creates schemas.
 
 A producer sends records to a topic with four partitions. It uses the same non-null key for every record. What is the most important consequence?
 
-A. Records are randomly distributed equally across partitions.  
-B. Records with that key are normally routed to the same partition, preserving per-key ordering.  
-C. Records are sent only to the controller.  
+A. Records are randomly distributed equally across partitions.
+B. Records with that key are normally routed to the same partition, preserving per-key ordering.
+C. Records are sent only to the controller.
 D. Records are rejected.
 
 ---
@@ -276,9 +276,9 @@ D. Records are rejected.
 
 Which producer setting is most directly related to batching records before sending them?
 
-A. `linger.ms`  
-B. `group.id`  
-C. `fetch.min.bytes`  
+A. `linger.ms`
+B. `group.id`
+C. `fetch.min.bytes`
 D. `auto.offset.reset`
 
 ---
@@ -287,9 +287,9 @@ D. `auto.offset.reset`
 
 Increasing producer `batch.size` can improve throughput primarily because:
 
-A. Kafka creates more partitions automatically.  
-B. More records can potentially be accumulated into a single produce batch.  
-C. Consumers skip offsets.  
+A. Kafka creates more partitions automatically.
+B. More records can potentially be accumulated into a single produce batch.
+C. Consumers skip offsets.
 D. Replication is disabled.
 
 ---
@@ -300,9 +300,9 @@ D. Replication is disabled.
 
 What identifies a consumer as belonging to a particular consumer group?
 
-A. `client.id`  
-B. `group.id`  
-C. `transactional.id`  
+A. `client.id`
+B. `group.id`
+C. `transactional.id`
 D. `application.id` only
 
 ---
@@ -311,9 +311,9 @@ D. `application.id` only
 
 A topic has four partitions and a consumer group has six consumers. How many consumers can actively own partitions at the same time?
 
-A. 2  
-B. 4  
-C. 6  
+A. 2
+B. 4
+C. 6
 D. 10
 
 ---
@@ -322,9 +322,9 @@ D. 10
 
 A consumer reads a record but crashes before its offset is committed. What can happen after restart?
 
-A. The record may be read again.  
-B. The record is permanently deleted.  
-C. Kafka automatically moves the record to another topic.  
+A. The record may be read again.
+B. The record is permanently deleted.
+C. Kafka automatically moves the record to another topic.
 D. The partition becomes permanently unavailable.
 
 ---
@@ -333,9 +333,9 @@ D. The partition becomes permanently unavailable.
 
 What does `auto.offset.reset=earliest` generally mean when there is no valid committed offset for the consumer group?
 
-A. Start at the newest available records.  
-B. Start at the earliest available offset.  
-C. Start at offset zero even if it has been deleted.  
+A. Start at the newest available records.
+B. Start at the earliest available offset.
+C. Start at offset zero even if it has been deleted.
 D. Disable consumption.
 
 ---
@@ -346,9 +346,9 @@ Two consumers in the same consumer group cannot normally process the same partit
 
 Why?
 
-A. Kafka assigns a partition to only one consumer within a consumer group at a time.  
-B. Kafka allows only one consumer per cluster.  
-C. Consumers cannot connect to the same broker.  
+A. Kafka assigns a partition to only one consumer within a consumer group at a time.
+B. Kafka allows only one consumer per cluster.
+C. Consumers cannot connect to the same broker.
 D. Consumer groups are limited to one partition.
 
 ---
@@ -359,9 +359,9 @@ D. Consumer groups are limited to one partition.
 
 Which statement best describes a Kafka consumer offset?
 
-A. It is the physical byte address of a record on disk.  
-B. It represents the position of a consumer group in a partition.  
-C. It identifies the producer instance.  
+A. It is the physical byte address of a record on disk.
+B. It represents the position of a consumer group in a partition.
+C. It identifies the producer instance.
 D. It identifies the broker leader.
 
 ---
@@ -370,9 +370,9 @@ D. It identifies the broker leader.
 
 A consumer processes a record successfully and then commits its offset. The application crashes afterward. What is the likely result when it restarts?
 
-A. The already-processed record normally will not be processed again by that group from the committed position.  
-B. The entire topic is replayed.  
-C. Kafka deletes the partition.  
+A. The already-processed record normally will not be processed again by that group from the committed position.
+B. The entire topic is replayed.
+C. Kafka deletes the partition.
 D. The consumer must start from offset zero.
 
 ---
@@ -381,9 +381,9 @@ D. The consumer must start from offset zero.
 
 Which processing pattern most naturally risks duplicate processing after a crash?
 
-A. Process → commit offset  
-B. Commit offset → process  
-C. Stop the application before consuming  
+A. Process → commit offset
+B. Commit offset → process
+C. Stop the application before consuming
 D. Delete the consumer group
 
 ---
@@ -392,9 +392,9 @@ D. Delete the consumer group
 
 What does at-least-once processing mean?
 
-A. Every record is guaranteed to be processed exactly once globally.  
-B. A record is processed zero or more times.  
-C. Records are processed one or more times, so duplicates can occur.  
+A. Every record is guaranteed to be processed exactly once globally.
+B. A record is processed zero or more times.
+C. Records are processed one or more times, so duplicates can occur.
 D. Records are never retried.
 
 ---
@@ -403,9 +403,9 @@ D. Records are never retried.
 
 What is required to reason correctly about "exactly once" in a Kafka application?
 
-A. It is enough to set `acks=0`.  
-B. You must consider the complete processing pipeline, including Kafka reads, writes, transactions, and external side effects.  
-C. It is guaranteed for every external database automatically.  
+A. It is enough to set `acks=0`.
+B. You must consider the complete processing pipeline, including Kafka reads, writes, transactions, and external side effects.
+C. It is guaranteed for every external database automatically.
 D. It only depends on partition count.
 
 ---
@@ -416,9 +416,9 @@ D. It only depends on partition count.
 
 A partition has replication factor 3. What does that mean?
 
-A. Three different topics contain the same data.  
-B. Three replicas of that partition exist across brokers.  
-C. Three consumer groups consume the partition.  
+A. Three different topics contain the same data.
+B. Three replicas of that partition exist across brokers.
+C. Three consumer groups consume the partition.
 D. Three producers must write every record.
 
 ---
@@ -427,9 +427,9 @@ D. Three producers must write every record.
 
 Which replica normally handles client reads and writes for a partition?
 
-A. Any follower chosen randomly  
-B. The partition leader  
-C. The controller only  
+A. Any follower chosen randomly
+B. The partition leader
+C. The controller only
 D. The oldest broker
 
 ---
@@ -438,9 +438,9 @@ D. The oldest broker
 
 What is an ISR?
 
-A. Internal Storage Record  
-B. In-Sync Replica set  
-C. Internal Security Registry  
+A. Internal Storage Record
+B. In-Sync Replica set
+C. Internal Security Registry
 D. Indexed Segment Repository
 
 ---
@@ -449,9 +449,9 @@ D. Indexed Segment Repository
 
 A partition has replication factor 3. One follower becomes unavailable but the remaining replicas are healthy and in sync. What can happen?
 
-A. The partition can continue operating, depending on the cluster's configuration and remaining ISR/leader state.  
-B. Kafka must delete the partition.  
-C. All topics are automatically deleted.  
+A. The partition can continue operating, depending on the cluster's configuration and remaining ISR/leader state.
+B. Kafka must delete the partition.
+C. All topics are automatically deleted.
 D. Consumers must permanently stop.
 
 ---
@@ -460,9 +460,9 @@ D. Consumers must permanently stop.
 
 Why is replication factor important?
 
-A. It controls JSON serialization.  
-B. It provides redundancy and helps Kafka tolerate broker failures.  
-C. It determines consumer application IDs.  
+A. It controls JSON serialization.
+B. It provides redundancy and helps Kafka tolerate broker failures.
+C. It determines consumer application IDs.
 D. It disables rebalancing.
 
 ---
@@ -473,9 +473,9 @@ D. It disables rebalancing.
 
 What is the purpose of a Kafka serializer?
 
-A. Convert an application object/value into bytes suitable for transmission.  
-B. Assign partitions to brokers.  
-C. Commit consumer offsets.  
+A. Convert an application object/value into bytes suitable for transmission.
+B. Assign partitions to brokers.
+C. Commit consumer offsets.
 D. Elect a controller.
 
 ---
@@ -484,9 +484,9 @@ D. Elect a controller.
 
 A producer uses JSON serialization. Which statement is most accurate?
 
-A. JSON automatically provides strong schema evolution guarantees.  
-B. JSON is a data representation; schema compatibility must be managed separately if required.  
-C. JSON eliminates the need for consumers to deserialize data.  
+A. JSON automatically provides strong schema evolution guarantees.
+B. JSON is a data representation; schema compatibility must be managed separately if required.
+C. JSON eliminates the need for consumers to deserialize data.
 D. JSON automatically enables Kafka transactions.
 
 ---
@@ -495,9 +495,9 @@ D. JSON automatically enables Kafka transactions.
 
 Why are schema registries commonly used with Avro, Protobuf, or JSON Schema?
 
-A. To store Kafka broker logs.  
-B. To centrally manage schemas and compatibility rules.  
-C. To replace all Kafka brokers.  
+A. To store Kafka broker logs.
+B. To centrally manage schemas and compatibility rules.
+C. To replace all Kafka brokers.
 D. To perform consumer-group assignment.
 
 ---
@@ -506,9 +506,9 @@ D. To perform consumer-group assignment.
 
 A consumer receives bytes encoded using a schema it cannot deserialize. What is the most likely result?
 
-A. Deserialization failure.  
-B. Kafka automatically converts the data to Java objects.  
-C. The broker rewrites the record.  
+A. Deserialization failure.
+B. Kafka automatically converts the data to Java objects.
+C. The broker rewrites the record.
 D. The partition leader changes.
 
 ---
@@ -517,9 +517,9 @@ D. The partition leader changes.
 
 Why is schema compatibility important?
 
-A. It helps producers and consumers evolve data contracts without unexpectedly breaking one another.  
-B. It increases the number of brokers automatically.  
-C. It eliminates partitions.  
+A. It helps producers and consumers evolve data contracts without unexpectedly breaking one another.
+B. It increases the number of brokers automatically.
+C. It eliminates partitions.
 D. It guarantees network availability.
 
 ---
@@ -530,9 +530,9 @@ D. It guarantees network availability.
 
 What is a consumer group rebalance?
 
-A. Redistributing partition assignments among consumers in a group.  
-B. Moving all Kafka data to a new cluster.  
-C. Rebuilding every topic.  
+A. Redistributing partition assignments among consumers in a group.
+B. Moving all Kafka data to a new cluster.
+C. Rebuilding every topic.
 D. Changing replication factor automatically.
 
 ---
@@ -541,9 +541,9 @@ D. Changing replication factor automatically.
 
 Which event can trigger a consumer-group rebalance?
 
-A. A consumer joins or leaves the group.  
-B. A producer changes its key.  
-C. A topic receives one record.  
+A. A consumer joins or leaves the group.
+B. A producer changes its key.
+C. A topic receives one record.
 D. A schema is read by a consumer.
 
 ---
@@ -552,9 +552,9 @@ D. A schema is read by a consumer.
 
 Why can excessive rebalancing be harmful?
 
-A. It can interrupt processing and create overhead.  
-B. It increases partition ordering guarantees.  
-C. It permanently deletes offsets.  
+A. It can interrupt processing and create overhead.
+B. It increases partition ordering guarantees.
+C. It permanently deletes offsets.
 D. It increases replication factor.
 
 ---
@@ -563,9 +563,9 @@ D. It increases replication factor.
 
 Which configuration is directly associated with the time a consumer is allowed between heartbeats before being considered failed by the group coordinator?
 
-A. `session.timeout.ms`  
-B. `linger.ms`  
-C. `retention.ms`  
+A. `session.timeout.ms`
+B. `linger.ms`
+C. `retention.ms`
 D. `segment.bytes`
 
 ---
@@ -574,9 +574,9 @@ D. `segment.bytes`
 
 A consumer spends a very long time processing records and stops polling frequently enough. What problem can occur?
 
-A. The consumer can exceed the allowed poll interval and be considered unresponsive, potentially causing a rebalance.  
-B. Kafka automatically increases the topic partition count.  
-C. The producer becomes the group coordinator.  
+A. The consumer can exceed the allowed poll interval and be considered unresponsive, potentially causing a rebalance.
+B. Kafka automatically increases the topic partition count.
+C. The producer becomes the group coordinator.
 D. Replication factor becomes zero.
 
 ---
@@ -587,9 +587,9 @@ D. Replication factor becomes zero.
 
 What is Kafka Streams?
 
-A. A client library for building stream-processing applications using Kafka.  
-B. A Kafka broker replacement.  
-C. A database engine unrelated to Kafka.  
+A. A client library for building stream-processing applications using Kafka.
+B. A Kafka broker replacement.
+C. A database engine unrelated to Kafka.
 D. A network protocol.
 
 ---
@@ -598,9 +598,9 @@ D. A network protocol.
 
 What is a Kafka Streams state store used for?
 
-A. Maintaining local state needed by stream-processing operations.  
-B. Storing broker configuration only.  
-C. Replacing Kafka topics globally.  
+A. Maintaining local state needed by stream-processing operations.
+B. Storing broker configuration only.
+C. Replacing Kafka topics globally.
 D. Storing TLS certificates only.
 
 ---
@@ -609,9 +609,9 @@ D. Storing TLS certificates only.
 
 What is a common use case for a KTable?
 
-A. Representing a changing table-like view where updates to a key replace or update previous values.  
-B. Creating broker replicas.  
-C. Managing consumer credentials.  
+A. Representing a changing table-like view where updates to a key replace or update previous values.
+B. Creating broker replicas.
+C. Managing consumer credentials.
 D. Creating Docker containers.
 
 ---
@@ -620,9 +620,9 @@ D. Creating Docker containers.
 
 Why does Kafka Streams use changelog topics for many state stores?
 
-A. To make state recoverable by reconstructing local state from Kafka.  
-B. To disable partitioning.  
-C. To avoid all serialization.  
+A. To make state recoverable by reconstructing local state from Kafka.
+B. To disable partitioning.
+C. To avoid all serialization.
 D. To prevent application restarts.
 
 ---
@@ -631,9 +631,9 @@ D. To prevent application restarts.
 
 What is the role of `application.id` in a Kafka Streams application?
 
-A. It identifies the Streams application and is used in important aspects such as consumer grouping and internal topic/state management.  
-B. It identifies a Kafka broker's IP address.  
-C. It identifies the Kafka cluster controller only.  
+A. It identifies the Streams application and is used in important aspects such as consumer grouping and internal topic/state management.
+B. It identifies a Kafka broker's IP address.
+C. It identifies the Kafka cluster controller only.
 D. It is equivalent to a topic name.
 
 ---
@@ -644,9 +644,9 @@ D. It is equivalent to a topic name.
 
 What is a Kafka transaction primarily useful for?
 
-A. Atomically publishing multiple records and coordinating offset commits with Kafka writes.  
-B. Increasing topic retention.  
-C. Creating partitions automatically.  
+A. Atomically publishing multiple records and coordinating offset commits with Kafka writes.
+B. Increasing topic retention.
+C. Creating partitions automatically.
 D. Encrypting all Kafka traffic.
 
 ---
@@ -655,9 +655,9 @@ D. Encrypting all Kafka traffic.
 
 A Kafka Streams application reads input records, updates state, and produces output. Why can transactions be useful?
 
-A. They can provide atomicity across relevant Kafka processing operations.  
-B. They eliminate all network failures.  
-C. They remove the need for serialization.  
+A. They can provide atomicity across relevant Kafka processing operations.
+B. They eliminate all network failures.
+C. They remove the need for serialization.
 D. They make every external database transactionally consistent automatically.
 
 ---
@@ -666,9 +666,9 @@ D. They make every external database transactionally consistent automatically.
 
 What does `isolation.level=read_committed` control for a Kafka consumer?
 
-A. Whether it reads only committed transactional records or also sees aborted transactional records.  
-B. Whether the consumer can commit offsets.  
-C. Whether partitions can be created.  
+A. Whether it reads only committed transactional records or also sees aborted transactional records.
+B. Whether the consumer can commit offsets.
+C. Whether partitions can be created.
 D. Whether replication is enabled.
 
 ---
@@ -677,9 +677,9 @@ D. Whether replication is enabled.
 
 A transactional producer aborts a transaction containing records. What should a `read_committed` consumer observe?
 
-A. The aborted records as normal application data.  
-B. The aborted transactional records should not be returned as committed application records.  
-C. Only the producer ID.  
+A. The aborted records as normal application data.
+B. The aborted transactional records should not be returned as committed application records.
+C. Only the producer ID.
 D. The records twice.
 
 ---
@@ -688,9 +688,9 @@ D. The records twice.
 
 Which statement about exactly-once semantics is the best answer?
 
-A. Exactly-once means no component in any system can ever execute an operation twice.  
-B. Kafka can provide strong exactly-once processing semantics for Kafka-to-Kafka workflows when correctly configured, but external side effects require additional transactional/idempotent design.  
-C. Exactly-once is achieved by setting `acks=0`.  
+A. Exactly-once means no component in any system can ever execute an operation twice.
+B. Kafka can provide strong exactly-once processing semantics for Kafka-to-Kafka workflows when correctly configured, but external side effects require additional transactional/idempotent design.
+C. Exactly-once is achieved by setting `acks=0`.
 D. Exactly-once requires one partition only.
 
 ---
@@ -701,9 +701,9 @@ D. Exactly-once requires one partition only.
 
 You need to increase producer throughput. Which approach can help?
 
-A. Increase batching and allow appropriate compression.  
-B. Set `batch.size=0`.  
-C. Disable all broker acknowledgments in every production scenario.  
+A. Increase batching and allow appropriate compression.
+B. Set `batch.size=0`.
+C. Disable all broker acknowledgments in every production scenario.
 D. Use one producer thread regardless of workload.
 
 ---
@@ -712,9 +712,9 @@ D. Use one producer thread regardless of workload.
 
 Why can compression improve Kafka performance?
 
-A. It can reduce network and storage bytes at the cost of CPU.  
-B. It eliminates serialization.  
-C. It disables replication.  
+A. It can reduce network and storage bytes at the cost of CPU.
+B. It eliminates serialization.
+C. It disables replication.
 D. It removes the need for partitions.
 
 ---
@@ -723,9 +723,9 @@ D. It removes the need for partitions.
 
 What is the primary scaling mechanism for Kafka topic consumption within a consumer group?
 
-A. Add partitions and distribute them across consumers, subject to assignment and workload constraints.  
-B. Add more producers to the same partition only.  
-C. Increase retention.  
+A. Add partitions and distribute them across consumers, subject to assignment and workload constraints.
+B. Add more producers to the same partition only.
+C. Increase retention.
 D. Increase schema versions.
 
 ---
@@ -734,9 +734,9 @@ D. Increase schema versions.
 
 A consumer is consistently behind the latest offsets. What does this generally indicate?
 
-A. Consumer lag exists and the consumer is not keeping up with production.  
-B. The topic contains no records.  
-C. The producer has stopped permanently.  
+A. Consumer lag exists and the consumer is not keeping up with production.
+B. The topic contains no records.
+C. The producer has stopped permanently.
 D. Replication factor is automatically increasing.
 
 ---
@@ -745,9 +745,9 @@ D. Replication factor is automatically increasing.
 
 Which change is most likely to reduce consumer throughput if applied without considering workload?
 
-A. Excessively small fetch/batch behavior causing many small network requests.  
-B. Increasing partition count where parallelism is needed.  
-C. Using efficient serialization.  
+A. Excessively small fetch/batch behavior causing many small network requests.
+B. Increasing partition count where parallelism is needed.
+C. Using efficient serialization.
 D. Appropriate batching.
 
 ---
@@ -758,9 +758,9 @@ D. Appropriate batching.
 
 What does TLS primarily provide for Kafka connections?
 
-A. Encryption in transit and server/client authentication depending on configuration.  
-B. Partition assignment.  
-C. Consumer offset storage.  
+A. Encryption in transit and server/client authentication depending on configuration.
+B. Partition assignment.
+C. Consumer offset storage.
 D. Schema evolution.
 
 ---
@@ -769,9 +769,9 @@ D. Schema evolution.
 
 What is SASL commonly used for?
 
-A. Authentication.  
-B. Partition replication.  
-C. Log compaction.  
+A. Authentication.
+B. Partition replication.
+C. Log compaction.
 D. Record ordering.
 
 ---
@@ -780,9 +780,9 @@ D. Record ordering.
 
 What does Kafka authorization control?
 
-A. Which authenticated principals are allowed to perform operations on Kafka resources.  
-B. How records are serialized.  
-C. How many bytes are in a segment.  
+A. Which authenticated principals are allowed to perform operations on Kafka resources.
+B. How records are serialized.
+C. How many bytes are in a segment.
 D. Which partition receives a key.
 
 ---
@@ -791,9 +791,9 @@ D. Which partition receives a key.
 
 A producer can authenticate successfully but receives an authorization error when writing to a topic. What is the most likely explanation?
 
-A. Authentication succeeded, but the principal lacks the required permission.  
-B. Serialization is always broken.  
-C. The consumer group is too large.  
+A. Authentication succeeded, but the principal lacks the required permission.
+B. Serialization is always broken.
+C. The consumer group is too large.
 D. The topic must have exactly one partition.
 
 ---
@@ -806,9 +806,9 @@ A consumer application repeatedly processes the same record after restarting.
 
 Which is the most likely area to investigate first?
 
-A. Offset commit behavior and when commits occur relative to processing.  
-B. Topic name capitalization only.  
-C. Broker hostname formatting only.  
+A. Offset commit behavior and when commits occur relative to processing.
+B. Topic name capitalization only.
+C. Broker hostname formatting only.
 D. Producer compression.
 
 ---
@@ -819,9 +819,9 @@ A producer sends records with a key, but records for the same key appear out of 
 
 Which statement is the best troubleshooting direction?
 
-A. Verify that records for the key are consistently routed to the same partition and that the application is not creating concurrent/reordered writes.  
-B. Kafka never preserves ordering.  
-C. Increase retention.  
+A. Verify that records for the key are consistently routed to the same partition and that the application is not creating concurrent/reordered writes.
+B. Kafka never preserves ordering.
+C. Increase retention.
 D. Remove all partitions.
 
 ---
@@ -832,9 +832,9 @@ A consumer group has 12 consumers but only 6 topic partitions. CPU usage is low 
 
 What is the most likely explanation?
 
-A. At most six consumers can actively own those six partitions at one time.  
-B. Kafka automatically duplicates partitions for idle consumers.  
-C. Every consumer must own every partition.  
+A. At most six consumers can actively own those six partitions at one time.
+B. Kafka automatically duplicates partitions for idle consumers.
+C. Every consumer must own every partition.
 D. Consumer groups cannot contain more than six consumers.
 
 ---
@@ -845,9 +845,9 @@ A consumer application performs expensive processing inside its polling loop. It
 
 What should you investigate?
 
-A. `max.poll.interval.ms`, processing duration, polling strategy, and workload distribution.  
-B. Topic retention only.  
-C. Producer serializer only.  
+A. `max.poll.interval.ms`, processing duration, polling strategy, and workload distribution.
+B. Topic retention only.
+C. Producer serializer only.
 D. Broker disk format only.
 
 ---
@@ -858,9 +858,9 @@ A topic has a single partition. You increase the number of consumers in its grou
 
 Why?
 
-A. A single partition cannot be actively assigned to multiple consumers in the same group simultaneously.  
-B. Kafka always limits groups to one consumer.  
-C. Producers can only send one record per second.  
+A. A single partition cannot be actively assigned to multiple consumers in the same group simultaneously.
+B. Kafka always limits groups to one consumer.
+C. Producers can only send one record per second.
 D. Consumer groups require ten partitions exactly.
 
 ---
@@ -871,9 +871,9 @@ A Kafka application consumes records, calls an external payment service, then co
 
 What is the key risk?
 
-A. The payment may be performed again when the record is reprocessed.  
-B. Kafka automatically rolls back the external payment.  
-C. Kafka transactions automatically cover the external payment service.  
+A. The payment may be performed again when the record is reprocessed.
+B. Kafka automatically rolls back the external payment.
+C. Kafka transactions automatically cover the external payment service.
 D. The partition becomes read-only permanently.
 
 ---
@@ -994,7 +994,7 @@ Topic
 
 Adding consumers beyond the number of partitions does not create additional partition-level parallelism.
 
-**Certification rule:**  
+**Certification rule:**
 > Consumer parallelism within a group is fundamentally bounded by the number of partitions.
 
 ---
@@ -1032,7 +1032,7 @@ It cannot guarantee a global relationship such as:
 A < X < B < Y < C < Z
 ```
 
-**Certification rule:**  
+**Certification rule:**
 > If strict ordering is required for a key, route all records for that key to the same partition.
 
 ---
@@ -1574,9 +1574,9 @@ A consumer reads A, B, and C. It processes C successfully but crashes before com
 
 What can happen after restart?
 
-A. It must start at offset 0.  
-B. It can replay C depending on the last committed position.  
-C. Kafka deletes C.  
+A. It must start at offset 0.
+B. It can replay C depending on the last committed position.
+C. Kafka deletes C.
 D. C becomes part of another topic.
 
 **Answer:** B

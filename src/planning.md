@@ -97,7 +97,7 @@ Study:
 - Clusters
 - Consumer groups
 - Replication
-  
+
 Core model:
 
 ```text

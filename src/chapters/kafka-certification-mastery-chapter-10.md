@@ -55,12 +55,12 @@ you can use:
 For data going in the opposite direction:
 
 ```text
-                Kafka 
-                  | 
-                  v 
-             Kafka Connect 
-                  | 
-                  v 
+                Kafka
+                  |
+                  v
+             Kafka Connect
+                  |
+                  v
                Database
 ```
 
@@ -75,21 +75,21 @@ There are two fundamental connector types.
 Moves data into Kafka.
 
 ```text
-        External System 
-               | 
-               v 
-         Source Connector 
-               | 
-               v 
+        External System
+               |
+               v
+         Source Connector
+               |
+               v
              Kafka
 ```
 
 Examples:
 
 ```text
-PostgreSQL -> Kafka 
-MongoDB -> Kafka 
-Filesystem -> Kafka 
+PostgreSQL -> Kafka
+MongoDB -> Kafka
+Filesystem -> Kafka
 ```
 
 ### Sink Connector
@@ -97,20 +97,20 @@ Filesystem -> Kafka
 Moves data out of Kafka.
 
 ```text
-        Kafka 
-          | 
-          v 
-     Sink Connector 
-          | 
-          v 
+        Kafka
+          |
+          v
+     Sink Connector
+          |
+          v
     External System
 ```
 
 Examples:
 
 ```text
-Kafka -> Elasticsearch 
-Kafka -> PostgreSQL 
+Kafka -> Elasticsearch
+Kafka -> PostgreSQL
 Kafka -> S3
 ```
 
@@ -136,24 +136,24 @@ A simplified architecture:
                    |
             +------+------+
             |             |
-       Config Topic   Offset Topic 
-            | 
-       Status Topic 
-            | 
-            v 
-+---------------------------+ 
-| Kafka Connect             | 
-|                           | 
-| Worker 1                  | 
-| Worker 2                  | 
-| Worker 3                  | 
-|                           | 
-+---------------------------+ 
-    |               | 
-    |               | 
-Source Connectors Sink Connectors 
-    |               | 
-    v               v 
+       Config Topic   Offset Topic
+            |
+       Status Topic
+            |
+            v
++---------------------------+
+| Kafka Connect             |
+|                           |
+| Worker 1                  |
+| Worker 2                  |
+| Worker 3                  |
+|                           |
++---------------------------+
+    |               |
+    |               |
+Source Connectors Sink Connectors
+    |               |
+    v               v
 External Systems External Systems
 ```
 
@@ -165,14 +165,14 @@ execute.
 Conceptually:
 
 ```text
-        Connect Worker 
-              | 
-              +-- Connector A 
-              |       +-- Task 1 
-              |       +-- Task 2 
-              | 
-              +-- Connector B 
-                      +-- Task 1 
+        Connect Worker
+              |
+              +-- Connector A
+              |       +-- Task 1
+              |       +-- Task 2
+              |
+              +-- Connector B
+                      +-- Task 1
                       +-- Task 2
 ```
 
@@ -206,10 +206,10 @@ Tasks perform the actual data movement.
 For example:
 
 ```text
-        Connector 
-            | 
-            +-- Task 0 
-            +-- Task 1 
+        Connector
+            |
+            +-- Task 0
+            +-- Task 1
             +-- Task 2
 ```
 
@@ -218,14 +218,14 @@ If the source system supports parallelism, multiple tasks can process different 
 A useful mental model:
 
 ```text
-        Connector 
-            | 
-            | defines integration 
-            v 
-          Tasks 
-            | 
-            | perform work 
-            v 
+        Connector
+            |
+            | defines integration
+            v
+          Tasks
+            |
+            | perform work
+            v
     Kafka / External System
 ```
 
@@ -266,8 +266,8 @@ orders
 -------------------------
 id | customer | amount
 -------------------------
-1  | Alice    | 100 
-2  | Bob      | 200 
+1  | Alice    | 100
+2  | Bob      | 200
 3  | Carol    | 150
 ```
 
@@ -276,23 +276,23 @@ A source connector might produce:
 ```text
 Kafka topic: orders
 
-key=1 value={...} 
-key=2 value={...} 
+key=1 value={...}
+key=2 value={...}
 key=3 value={...}
 ```
 
 Architecture:
 
 ```text
-        PostgreSQL 
-            | 
-            v 
-      Source Connector 
-            | 
-            +-- Task 0 
-            +-- Task 1 
-            | 
-            v 
+        PostgreSQL
+            |
+            v
+      Source Connector
+            |
+            +-- Task 0
+            +-- Task 1
+            |
+            v
         Kafka topic
 ```
 
@@ -301,23 +301,23 @@ Architecture:
 Suppose Kafka contains:
 
 ```text
-orders 
-payments 
+orders
+payments
 customers
 ```
 
 A sink connector can consume records and write them to another system.
 
 ```text
-        Kafka 
-          | 
-          v 
-     Sink Connector 
-          | 
-          +-- Task 0 
-          +-- Task 1 
-          | 
-          v 
+        Kafka
+          |
+          v
+     Sink Connector
+          |
+          +-- Task 0
+          +-- Task 1
+          |
+          v
      Elasticsearch
 ```
 
@@ -330,10 +330,10 @@ Standalone mode is intended for simpler deployments.
 Architecture:
 
 ```text
-        +-----------------------+ 
-        |    Connect Worker     | 
-        |                       | 
-        |   Connector + Tasks   | 
+        +-----------------------+
+        |    Connect Worker     |
+        |                       |
+        |   Connector + Tasks   |
         +-----------------------+
 ```
 
@@ -362,9 +362,9 @@ Distributed mode runs multiple Connect workers.
                              |
                  +-----------+-----------+
                  |                       |
-            +---------------+ +---------------+ 
-            | Connect Worker| | Connect Worker| 
-            |       2       | |       3       | 
+            +---------------+ +---------------+
+            | Connect Worker| | Connect Worker|
+            |       2       | |       3       |
             +---------------+ +---------------+
 ```
 
@@ -391,17 +391,17 @@ Important internal topics include:
 Conceptually:
 
 ```text
-        Connect Worker 1 
-              | 
-        Connect Worker 2 
-              | 
-        Connect Worker 3 
-              | 
-              v 
-   +----------------------+ 
-   | Kafka Connect Topics | 
-   +----------------------+ 
-    |         |           | 
+        Connect Worker 1
+              |
+        Connect Worker 2
+              |
+        Connect Worker 3
+              |
+              v
+   +----------------------+
+   | Kafka Connect Topics |
+   +----------------------+
+    |         |           |
   config   offsets      status
 ```
 
@@ -412,10 +412,10 @@ The configuration topic stores connector configuration in distributed mode.
 Conceptually:
 
 ```text
-        config topic 
-              | 
-              +-- connector A configuration 
-              +-- connector B configuration 
+        config topic
+              |
+              +-- connector A configuration
+              +-- connector B configuration
               +-- connector C configuration
 ```
 
@@ -430,7 +430,7 @@ Source:
 database position = 1,235,678
 
 Sink:
-Kafka partition 2 
+Kafka partition 2
 offset = 98,421
 ```
 
@@ -447,13 +447,13 @@ The status topic stores information about:
 For example:
 
 ```text
-connector=orders-source 
+connector=orders-source
 status=RUNNING
 
-task=0 
+task=0
 status=RUNNING
 
-task=1 
+task=1
 status=FAILED
 ```
 
@@ -514,20 +514,20 @@ Suppose:
 Then:
 
 ```text
-        Connector 
-            | 
-            +-- Task 0 
-            +-- Task 1 
-            +-- Task 2 
+        Connector
+            |
+            +-- Task 0
+            +-- Task 1
+            +-- Task 2
             +-- Task 3
 ```
 
 But if the source can only support two parallel tasks:
 
 ```text
-        Connector 
-            | 
-            +-- Task 0 
+        Connector
+            |
+            +-- Task 0
             +-- Task 1
 ```
 
@@ -542,26 +542,26 @@ Example:
 ```text
 Before:
 
-Worker 1 
-Task A 
+Worker 1
+Task A
 Task B
 
-Worker 2 
+Worker 2
 Task C
 
-Worker 3 
+Worker 3
 Task D
 ```
 
 Worker 2 fails. Connect can rebalance:
 
 ```text
-Worker 1 
-Task A 
+Worker 1
+Task A
 Task B
 
-Worker 3 
-Task C 
+Worker 3
+Task C
 Task D
 ```
 
@@ -574,10 +574,10 @@ A connector can fail independently of the Connect cluster.
 Example:
 
 ```text
-          Worker 
-            | 
-            +-- Connector A -> RUNNING 
-            | 
+          Worker
+            |
+            +-- Connector A -> RUNNING
+            |
             +-- Connector B -> FAILED
 ```
 
@@ -625,7 +625,7 @@ curl -X POST \
         "config": {
         "connector.class": "...",
         "tasks.max": "3"
-        } 
+        }
     }'
 ```
 
@@ -636,9 +636,9 @@ The exact connector-specific configuration depends on the plugin.
 Typical states include:
 
 ```text
-UNASSIGNED 
-RUNNING 
-PAUSED 
+UNASSIGNED
+RUNNING
+PAUSED
 FAILED
 ```
 
@@ -651,8 +651,8 @@ Connector:
 RUNNING
 
 Tasks:
-Task 0 -> RUNNING 
-Task 1 -> RUNNING 
+Task 0 -> RUNNING
+Task 1 -> RUNNING
 Task 2 -> FAILED
 ```
 
@@ -666,12 +666,12 @@ Connect supports pausing connectors.
 Conceptually:
 
 ```text
-        RUNNING 
-           | 
-           v 
-         PAUSED 
-           | 
-           v 
+        RUNNING
+           |
+           v
+         PAUSED
+           |
+           v
         RUNNING
 ```
 
@@ -711,15 +711,15 @@ converters include:
 Conceptually:
 
 ```text
-        External data 
-             | 
-             v 
-          Connector 
-             | 
-             v 
-          Converter 
-             | 
-             v 
+        External data
+             |
+             v
+          Connector
+             |
+             v
+          Converter
+             |
+             v
          Kafka record
 ```
 
@@ -742,20 +742,20 @@ Converter
 Conceptually:
 
 ```text
-        Kafka Producer 
-             | 
-         Serializer 
-             | 
+        Kafka Producer
+             |
+         Serializer
+             |
            Kafka
 ```
 
 while:
 
 ```text
-        Kafka Connect 
-             | 
-         Converter 
-             | 
+        Kafka Connect
+             |
+         Converter
+             |
            Kafka
 ```
 
@@ -784,13 +784,13 @@ With Schema Registry, Kafka Connect can use Avro.
 Architecture:
 
 ```text
-        Kafka Connect 
-             | 
-       Avro Converter 
-             | 
-             +------> Schema Registry 
-             | 
-             v 
+        Kafka Connect
+             |
+       Avro Converter
+             |
+             +------> Schema Registry
+             |
+             v
            Kafka
 ```
 
@@ -805,13 +805,13 @@ Protobuf is another schema-based serialization approach.
 Architecture:
 
 ```text
-        Kafka Connect 
-             | 
-       Protobuf Converter 
-             | 
-             +------> Schema Registry 
-             | 
-             v 
+        Kafka Connect
+             |
+       Protobuf Converter
+             |
+             +------> Schema Registry
+             |
+             v
            Kafka
 ```
 
@@ -882,14 +882,14 @@ Connect's internal data model supports structured records. A record can contain:
 Example:
 
 ```text
-Schema: 
-    id -> INT64 
-    customer -> STRING 
+Schema:
+    id -> INT64
+    customer -> STRING
     amount -> DECIMAL
 
-Value: 
-    100 
-    Alice 
+Value:
+    100
+    Alice
     250.00
 ```
 
@@ -902,27 +902,27 @@ Single Message Transforms are abbreviated **SMT**. SMTs modify individual record
 Conceptually:
 
 ```text
-        Source 
-          | 
-          v 
-        Record 
-          | 
-          v 
-         SMT 
-          | 
-          v 
+        Source
+          |
+          v
+        Record
+          |
+          v
+         SMT
+          |
+          v
         Kafka
 ```
 
 Or:
 
 ```text
-        Kafka 
-          | 
-          v 
-         SMT 
-          | 
-          v 
+        Kafka
+          |
+          v
+         SMT
+          |
+          v
          Sink
 ```
 
@@ -941,7 +941,7 @@ SMTs can be used for:
 Example:
 
 ```text
-        topic: 
+        topic:
         orders.raw
             |
             v
@@ -981,12 +981,12 @@ The strictest strategy is to fail the task.
 Conceptually:
 
 ```text
-        Record 
-          | 
-          v 
-    Processing error 
-          | 
-          v 
+        Record
+          |
+          v
+    Processing error
+          |
+          v
       TASK FAILED
 ```
 
@@ -997,8 +997,8 @@ This is appropriate when data loss or silent skipping is unacceptable.
 Another approach is to continue processing.
 
 ```text
-Record 1 -> SUCCESS 
-Record 2 -> ERROR -> IGNORE 
+Record 1 -> SUCCESS
+Record 2 -> ERROR -> IGNORE
 Record 3 -> SUCCESS
 ```
 
@@ -1013,9 +1013,9 @@ A Dead Letter Queue is commonly abbreviated **DLQ**
 Instead of stopping:
 
 ```text
-        Bad record 
-            | 
-            v 
+        Bad record
+            |
+            v
            DLQ
 ```
 
@@ -1024,13 +1024,13 @@ while good records continue.
 Architecture:
 
 ```text
-        Kafka 
-          | 
-          v 
-     Sink Connector 
-          | 
-          +---- good record ----> Target 
-          | 
+        Kafka
+          |
+          v
+     Sink Connector
+          |
+          +---- good record ----> Target
+          |
           +---- bad record -----> DLQ topic
 ```
 
@@ -1053,10 +1053,10 @@ This makes operational investigation easier.
 A production decision should consider:
 
 ```text
-        Can we tolerate skipping records? 
-            |                    |  
-           no                   yes 
-            |                    | 
+        Can we tolerate skipping records?
+            |                    |
+           no                   yes
+            |                    |
            FAIL             IGNORE / DLQ
 ```
 
@@ -1064,7 +1064,7 @@ For business-critical data pipelines, DLQs often provide a useful compromise:
 
 ```text
 Do not stop the entire pipeline
-              +  
+              +
 Do not silently discard the bad record
 ```
 
@@ -1075,19 +1075,19 @@ Connect can retry certain failures.
 Conceptually:
 
 ```text
-        Record 
-           | 
-           v 
-        Failure 
-           | 
-           v 
-         Retry 
-           | 
-           +---- success 
-           | 
-           +---- failure 
-           | 
-           v 
+        Record
+           |
+           v
+        Failure
+           |
+           v
+         Retry
+           |
+           +---- success
+           |
+           +---- failure
+           |
+           v
        DLQ / FAIL
 ```
 
@@ -1101,24 +1101,24 @@ Connect must know where it is in a data source or Kafka topic.
 For source connectors:
 
 ```text
-        External system 
-               | 
-               v 
-        Source position 
-               | 
-               v 
+        External system
+               |
+               v
+        Source position
+               |
+               v
      Connect offset storage
 ```
 
 For sink connectors:
 
 ```text
-        Kafka partition 
-              | 
-              v 
-        Consumed offset 
-              | 
-              v 
+        Kafka partition
+              |
+              v
+        Consumed offset
+              |
+              v
      Connect offset storage
 ```
 
@@ -1133,7 +1133,7 @@ Transaction ID = 5000
 Connect records that position. After restart:
 
 ```text
-Resume from approximately: 
+Resume from approximately:
 Transaction ID = 5000
 ```
 
@@ -1153,8 +1153,8 @@ Example:
 ```text
 Topic: orders
 
-Partition 0 -> offset 1000 
-Partition 1 -> offset 900 
+Partition 0 -> offset 1000
+Partition 1 -> offset 900
 Partition 2 -> offset 1200
 ```
 
@@ -1222,9 +1222,9 @@ Exactly-once behavior requires more than simply setting a configuration property
 
 ```text
         Source
-           + 
+           +
         Connect
-           +       
+           +
          Kafka
            +
          Sink
@@ -1259,8 +1259,8 @@ Failed to find any class that implements Connector
 Connector plugins can have their own dependencies. Poor dependency isolation can result in:
 
 ```text
-Class conflict 
-NoSuchMethodError 
+Class conflict
+NoSuchMethodError
 ClassNotFoundException
 
 ```
@@ -1292,15 +1292,15 @@ In distributed mode, the REST API can be exposed by each worker. The cluster han
 coordination. When administering a distributed cluster, think:
 
 ```text
-       REST request 
-            | 
-            v 
-       Connect worker 
-            | 
-            v 
-  Connect cluster coordination 
-            | 
-            v 
+       REST request
+            |
+            v
+       Connect worker
+            |
+            v
+  Connect cluster coordination
+            |
+            v
     Connector/task assignment
 ```
 
@@ -1345,20 +1345,20 @@ Connect workers may need access to Kafka topics.
 For example:
 
 ```text
-        Connect worker 
+        Connect worker
               |
-              +--> READ source topics 
+              +--> READ source topics
               |
-              +--> WRITE sink/internal topics 
-              | 
+              +--> WRITE sink/internal topics
+              |
               +--> READ/WRITE internal topics
 ```
 
 The exact permissions depend on connector type and configuration. A common production failure is:
 
 ```text
-Kafka connectivity: OK 
-Authentication: OK 
+Kafka connectivity: OK
+Authentication: OK
 Authorization: DENIED
 ```
 
@@ -1367,11 +1367,11 @@ Authorization: DENIED
 If using Schema Registry:
 
 ```text
-        Connect 
-           | 
-           | TLS 
-           | authentication 
-           v 
+        Connect
+           |
+           | TLS
+           | authentication
+           v
      Schema Registry
 ```
 
@@ -1466,9 +1466,9 @@ The connector must support the desired task parallelism.
 A common tuning mistake is:
 
 ```text
-        Performance problem 
-                | 
-                v 
+        Performance problem
+                |
+                v
           tasks.max = 100
 ```
 
@@ -1491,12 +1491,12 @@ Then tune task count.
 Consider:
 
 ```text
-        Kafka 
-          | 
-          v 
-     Sink Connector 
-          | 
-          v 
+        Kafka
+          |
+          v
+     Sink Connector
+          |
+          v
        Database
 ```
 
@@ -1577,8 +1577,8 @@ Do not repeatedly restart the task without identifying the cause.
 Example:
 
 ```text
-SerializationException 
-DataException 
+SerializationException
+DataException
 Unknown magic byte
 ```
 
@@ -1622,14 +1622,14 @@ Check:
 If a sink connector is falling behind:
 
 ```text
-        Kafka 
-          | 
-          | records 
-          v 
-    Sink Connector 
-          | 
-          | too slow 
-          v 
+        Kafka
+          |
+          | records
+          v
+    Sink Connector
+          |
+          | too slow
+          v
     External system
 ```
 
@@ -1657,8 +1657,8 @@ Integration
 Example:
 
 ```text
-Kafka -> Elasticsearch 
-PostgreSQL -> Kafka 
+Kafka -> Elasticsearch
+PostgreSQL -> Kafka
 ```
 
 **Kafka Streams** is designed for:
@@ -1670,21 +1670,21 @@ Stream processing
 Example:
 
 ```text
-        orders 
-          | 
-          v 
-         Join 
-          | 
-          v 
-      Aggregate 
-          | 
-          v 
+        orders
+          |
+          v
+         Join
+          |
+          v
+      Aggregate
+          |
+          v
     customer-orders
 ```
 
 ## 73. Connect vs Streams Comparison
 
-| Feature             | Kafka Connect            | Kafka Streams              | 
+| Feature             | Kafka Connect            | Kafka Streams              |
 |---------------------|--------------------------|----------------------------|
 | Main purpose        | Integration              | Stream processing          |
 | Source/Sink systems | Yes                      | Can interact through Kafka |
@@ -1732,10 +1732,10 @@ number of tasks connector implementation partitioning external-system capacity b
 
 Remember:
 ```text
-SOURCE 
+SOURCE
 External -> Kafka
 
-SINK 
+SINK
 Kafka -> External
 ```
 
@@ -1747,8 +1747,8 @@ Connect's distributed mode depends on internal topics.
 
 Important:
 
-1. [ ] **config.storage.topic** 
-2. [ ] **offset.storage.topic** 
+1. [ ] **config.storage.topic**
+2. [ ] **offset.storage.topic**
 3. [ ] **status.storage.topic**
 
 These are not application data topics.
@@ -1783,19 +1783,19 @@ Kafka Connect = exactly once
 
 Instead ask:
 
-1. Does this specific connector support the required semantics? 
+1. Does this specific connector support the required semantics?
 2. Does the source support them? Does the sink support them?
 3. Does the configuration enable them?
 
-## 81. Developer Certification Questions 
+## 81. Developer Certification Questions
 
 _Question 1_
 
 **What is the primary purpose of Kafka Connect?**
 
-A. Replace Kafka brokers 
-B. Integrate Kafka with external systems 
-C. Perform all stream processing 
+A. Replace Kafka brokers
+B. Integrate Kafka with external systems
+C. Perform all stream processing
 D. Manage Kafka partitions
 
 Answer: **B**
@@ -1804,9 +1804,9 @@ _Question 2_
 
 **A source connector moves data in which direction?**
 
-A. Kafka → database 
-B. Database → Kafka 
-C. Kafka → Kafka Streams 
+A. Kafka → database
+B. Database → Kafka
+C. Kafka → Kafka Streams
 D. Broker → controller
 
 Answer: **B**
@@ -1815,9 +1815,9 @@ _Question 3_
 
 **What performs the actual data movement in Kafka Connect?**
 
-A. Worker configuration 
-B. Connector metadata 
-C. Tasks 
+A. Worker configuration
+B. Connector metadata
+C. Tasks
 D. Schema Registry
 
 Answer: **C**
@@ -1826,9 +1826,9 @@ _Question 4_
 
 **What does `tasks.max` represent?**
 
-A. Maximum number of workers 
-B. Maximum number of tasks for a connector 
-C. Number of Kafka partitions 
+A. Maximum number of workers
+B. Maximum number of tasks for a connector
+C. Number of Kafka partitions
 D. Maximum records per second
 
 Answer: **B**
@@ -1837,9 +1837,9 @@ _Question 5_
 
 **Which internal topic stores connector offsets?**
 
-A. Config topic 
-B. Status topic 
-C. Offset topic 
+A. Config topic
+B. Status topic
+C. Offset topic
 D. Data topic
 
 Answer: **C**
@@ -1848,9 +1848,9 @@ _Question 6_
 
 **Which component determines how Kafka Connect records are serialized?**
 
-A. Worker 
-B. Converter 
-C. Connector 
+A. Worker
+B. Converter
+C. Connector
 D. Task scheduler
 
 Answer: **B**
@@ -1859,9 +1859,9 @@ _Question 7_
 
 **Which component is most appropriate for complex joins and stateful aggregations?**
 
-A. SMT 
-B. Kafka Connect 
-C. Kafka Streams 
+A. SMT
+B. Kafka Connect
+C. Kafka Streams
 D. Converter
 
 Answer: **C**
@@ -1870,9 +1870,9 @@ _Question 8_
 
 **What is a DLQ used for?**
 
-A. Store Kafka broker metadata 
-B. Store records that cannot be processed successfully 
-C. Store consumer offsets 
+A. Store Kafka broker metadata
+B. Store records that cannot be processed successfully
+C. Store consumer offsets
 D. Store connector configuration
 
 Answer: **B**
@@ -1882,8 +1882,8 @@ _Question 9_
 **What happens when a Connect worker fails in distributed mode?**
 
 A. The Kafka cluster necessarily fails
-B. Tasks can be reassigned to other workers 
-C. All Kafka topics are deleted 
+B. Tasks can be reassigned to other workers
+C. All Kafka topics are deleted
 D. Schema Registry stops
 
 Answer: **B**
@@ -1892,22 +1892,22 @@ _Question 10_
 
 **Which endpoint can be used to inspect connector plugins?**
 
-A. /topics 
-B. /connector-plugins 
-C. /plugins/status 
+A. /topics
+B. /connector-plugins
+C. /plugins/status
 D. /schema/plugins
 
 Answer: **B**
 
-## 82. Administrator Questions 
+## 82. Administrator Questions
 
 _Question 11_
 
 **Which three internal topics are especially important in distributed Connect?**
 
-A. input/output/error 
-B. config/offset/status 
-C. producer/consumer/admin 
+A. input/output/error
+B. config/offset/status
+C. producer/consumer/admin
 D. source/sink/schema
 
 Answer: **B**
@@ -1916,9 +1916,9 @@ _Question 12_
 
 **A connector configuration exists, but the connector class cannot be loaded. What should be checked first?**
 
-A. Partition leader election 
-B. plugin.path and connector installation 
-C. Consumer offset reset 
+A. Partition leader election
+B. plugin.path and connector installation
+C. Consumer offset reset
 D. Replication factor of application topics
 
 Answer: **B**
@@ -1945,9 +1945,9 @@ _Question 15_
 
 **What is the main benefit of distributed Connect mode?**
 
-A. Removes the need for Kafka 
-B. Provides scalability and fault tolerance 
-C. Eliminates serialization 
+A. Removes the need for Kafka
+B. Provides scalability and fault tolerance
+C. Eliminates serialization
 D. Eliminates connectors
 
 Answer: **B**
@@ -1956,13 +1956,13 @@ Answer: **B**
 
 You have:
 ```text
-      Kafka 
-        | 
-        | 50,000 records/sec 
-        v 
-  Sink Connector 
-        | 
-        v 
+      Kafka
+        |
+        | 50,000 records/sec
+        v
+  Sink Connector
+        |
+        v
     PostgreSQL
 ```
 
@@ -1993,15 +1993,15 @@ First identify the bottleneck.
 
 Initial state:
 ```text
-Worker 1 
-Task A 
+Worker 1
+Task A
 Task B
 
-Worker 2 
-Task C 
+Worker 2
+Task C
 Task D
 
-Worker 3 
+Worker 3
 Task E
 ```
 
@@ -2009,13 +2009,13 @@ Worker 2 fails.
 
 In distributed mode:
 ```text
-Worker 1 
-Task A 
-Task B 
+Worker 1
+Task A
+Task B
 Task C?
 
-Worker 3 
-Task D? 
+Worker 3
+Task D?
 Task E
 ```
 
@@ -2025,28 +2025,28 @@ Tasks can be redistributed. The exact assignment depends on Connect's coordinati
 
 Suppose:
 ```text
-Record 100 -> SUCCESS 
-Record 101 -> INVALID 
+Record 100 -> SUCCESS
+Record 101 -> INVALID
 Record 102 -> SUCCESS
 ```
 
 With fail-on-error:
 ```text
-         Task 
-          | 
-      Record 101 
-          | 
-        ERROR 
-          | 
+         Task
+          |
+      Record 101
+          |
+        ERROR
+          |
       TASK FAILED
 ```
 
 With DLQ:
 ```text
-        Record 101 
+        Record 101
         | +----> DLQ
 
-        Record 102 
+        Record 102
         | +----> SUCCESS
 ```
 
@@ -2081,36 +2081,37 @@ A mature Connect deployment might look like:
 
 Security:
 
-* TLS 
-* SASL 
-* ACLs 
-* Secrets 
-* Network segmentation 
+* TLS
+* SASL
+* ACLs
+* Secrets
+* Network segmentation
 * Monitoring
 
 Operational requirements:
 
-* High availability 
-* Internal topic replication 
-* Connector monitoring 
-* Task monitoring 
-* DLQ monitoring 
+* High availability
+* Internal topic replication
+* Connector monitoring
+* Task monitoring
+* DLQ monitoring
 * Capacity planning
 
-## 87. Hands-On Lab 
+## 87. Hands-On Lab
+
 ### Lab Objective
 
 Deploy a small Kafka Connect cluster and practice:
 
-1. Plugin discovery 
-2. Connector creation 
-3. Task inspection 
-4. REST API management 
-5. Converter configuration 
-6. Error handling 
+1. Plugin discovery
+2. Connector creation
+3. Task inspection
+4. REST API management
+5. Converter configuration
+6. Error handling
 7. DLQ
-8. Connector restart 
-9. Distributed workers 
+8. Connector restart
+9. Distributed workers
 
 * **Step 1** — Verify Connect
 ```bash
@@ -2118,7 +2119,7 @@ Deploy a small Kafka Connect cluster and practice:
 ```
 Expected response contains version information.
 
-* **Step 2** — List Connectors 
+* **Step 2** — List Connectors
 ```bash
   curl http://localhost:8083/connectors
 ```
@@ -2129,34 +2130,34 @@ Expected response contains version information.
 
 Verify that your desired connector appears.
 
-* **Step 4** — Create a Connector 
+* **Step 4** — Create a Connector
 ```bash
-  curl -X POST http://localhost:8083/connectors 
-    -H "Content-Type: application/json"  
-    -d '{ 
-          "name": "demo-source", 
-          "config": { 
-            "connector.class": "YOUR_CONNECTOR_CLASS", 
-            "tasks.max": "2" 
-            } 
-         }' 
+  curl -X POST http://localhost:8083/connectors
+    -H "Content-Type: application/json"
+    -d '{
+          "name": "demo-source",
+          "config": {
+            "connector.class": "YOUR_CONNECTOR_CLASS",
+            "tasks.max": "2"
+            }
+         }'
 ```
 
-* **Step 5** — Inspect Status 
+* **Step 5** — Inspect Status
 ```bash
-  curl  http://localhost:8083/connectors/demo-source/status 
+  curl  http://localhost:8083/connectors/demo-source/status
 ```
 
 Check:
 
 1. [x] connector state
 2. [x] task states
-3. [x] worker assignment 
+3. [x] worker assignment
 
-**Step 6** — Inspect Configuration 
-curl http://localhost:8083/connectors/demo-source/config 
+**Step 6** — Inspect Configuration
+curl http://localhost:8083/connectors/demo-source/config
 
-**Step 7** — Pause 
+**Step 7** — Pause
 
 ```bash
 curl -X PUT http://localhost:8083/connectors/demo-source/pause
@@ -2165,10 +2166,10 @@ curl -X PUT http://localhost:8083/connectors/demo-source/pause
 **Step 8** — Resume
 
 ```bash
-curl -X PUT http://localhost:8083/connectors/demo-source/resume 
+curl -X PUT http://localhost:8083/connectors/demo-source/resume
 ```
 
-**Step 9** — Delete 
+**Step 9** — Delete
 
 ```bash
 curl -X DELETE http://localhost:8083/connectors/demo-source
@@ -2212,60 +2213,60 @@ Worker 1     Worker 2     Worker 3
   config      offsets     status
 ```
 
-## 89. Final Cheat Sheet 
+## 89. Final Cheat Sheet
 ```text
-Kafka Connect 
+Kafka Connect
     = integration framework
 
-Source Connector 
+Source Connector
     = external -> Kafka
 
-Sink Connector 
+Sink Connector
     = Kafka -> external
 
-Worker 
+Worker
     = Connect process/runtime
 
-Connector 
+Connector
     = integration definition/coordination
 
-Task 
+Task
     = actual data movement
 
-tasks.max 
+tasks.max
     = maximum task count
 
-Standalone 
+Standalone
     = simple/single process
 
-Distributed 
+Distributed
     = scalable/fault-tolerant cluster
 
-Config Topic 
+Config Topic
     = connector configuration
 
-Offset Topic 
+Offset Topic
     = connector progress
 
-Status Topic 
+Status Topic
     = worker/connector/task status
 
-Converter 
+Converter
     = serialization/deserialization
 
-SMT 
+SMT
     = per-record transformation
 
-DLQ 
+DLQ
     = failed records
 
-REST API 
+REST API
     = Connect administration
 
-Connect 
+Connect
     = MOVE DATA
 
-Streams 
+Streams
     = PROCESS DATA
 ```
 
@@ -2273,20 +2274,20 @@ Streams
 
 The most important certification concepts are:
 
-1. [ ] Kafka Connect is an integration framework. 
-2. [ ] Source connectors move external data into Kafka. 
-3. [ ] Sink connectors move Kafka data into external systems. 
-4. [ ] Workers provide the runtime environment. 
-5. [ ] Tasks perform the actual data movement. 
-6. [ ] `tasks.max` is a maximum, not a guarantee. 
-7. [ ] Distributed mode provides scalability and fault tolerance. 
-8. [ ] Config, offset, and status topics are critical internal topics. 
-9. [ ] Converters control serialization/deserialization. 
-10. [ ] Schema Registry is separate from Kafka brokers. 
-11. [ ] SMTs are lightweight per-record transformations. 
-12. [ ] DLQs prevent bad records from necessarily stopping an entire pipeline. 
-13. [ ] Connector plugins must be installed and discoverable through plugin.path. 
-14. [ ] Connect offsets enable progress tracking and recovery. 
-15. [ ] Exactly-once semantics depend on the complete source-to-sink architecture. 
-16. [ ] Kafka Connect is primarily for integration; Kafka Streams is for stream processing. 
+1. [ ] Kafka Connect is an integration framework.
+2. [ ] Source connectors move external data into Kafka.
+3. [ ] Sink connectors move Kafka data into external systems.
+4. [ ] Workers provide the runtime environment.
+5. [ ] Tasks perform the actual data movement.
+6. [ ] `tasks.max` is a maximum, not a guarantee.
+7. [ ] Distributed mode provides scalability and fault tolerance.
+8. [ ] Config, offset, and status topics are critical internal topics.
+9. [ ] Converters control serialization/deserialization.
+10. [ ] Schema Registry is separate from Kafka brokers.
+11. [ ] SMTs are lightweight per-record transformations.
+12. [ ] DLQs prevent bad records from necessarily stopping an entire pipeline.
+13. [ ] Connector plugins must be installed and discoverable through plugin.path.
+14. [ ] Connect offsets enable progress tracking and recovery.
+15. [ ] Exactly-once semantics depend on the complete source-to-sink architecture.
+16. [ ] Kafka Connect is primarily for integration; Kafka Streams is for stream processing.
 17. [ ] Production Connect requires security, monitoring, capacity planning, and reliable internal topics.

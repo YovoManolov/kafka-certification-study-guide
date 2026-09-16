@@ -1,2658 +1,1952 @@
-# Chapter 21 — Kafka Certification Scenario Drills: Developer + Administrator
+# Chapter 21 — Kafka Security Deep Dive: TLS, SASL, ACLs, Authentication & Authorization
 
 > Kafka Developer & Administrator Certification Preparation
 > Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
 > operational examples, troubleshooting scenarios, and exam traps.
+
 ---
 
 ## 21.1 Learning Objectives
 
-After completing this chapter, you should be able to:
+By the end of this chapter you should be able to:
 
--   Diagnose Kafka incidents systematically.
--   Distinguish producer, consumer, broker, network, security,
-    replication, and application failures.
--   Select the most useful first diagnostic action.
--   Avoid changing configuration before establishing evidence.
--   Reason from symptoms to likely root causes.
--   Recognize CCDAK-style developer scenarios.
--   Recognize CCAAK-style administrator scenarios.
--   Explain why an answer is correct rather than merely recognizing it.
--   Handle multi-symptom production incidents.
--   Prioritize remediation according to impact and risk.
--   Separate immediate mitigation from permanent remediation.
--   Identify certification traps.
--   Answer scenario questions efficiently under time pressure.
+- Separate encryption, authentication and authorization.
+- Explain TLS, certificates, CAs, keystores, truststores and mutual
+    TLS.
+- Configure and troubleshoot `PLAINTEXT`, `SSL`, `SASL_PLAINTEXT` and
+    `SASL_SSL`.
+- Explain SASL/PLAIN, SCRAM, GSSAPI/Kerberos and OAUTHBEARER.
+- Understand listener-specific security configuration.
+- Explain Kafka principals and principal mapping.
+- Configure and reason about Kafka ACLs.
+- Understand `StandardAuthorizer` in KRaft.
+- Identify permissions required by producers, consumers, transactions
+    and administration.
+- Secure client, inter-broker and controller communication.
+- Perform staged security migrations.
+- Troubleshoot failures from DNS/TCP through TLS, SASL and ACL
+    evaluation.
 
-------------------------------------------------------------------------
+---
 
-## 21.2 The Certification Scenario Mindset
 
-Kafka certification questions often look simple:
-
-> A consumer is experiencing high lag. What should you check?
-
-The weak approach is:
-
-``` text
-High lag → increase consumers
+```mermaid
+flowchart LR
+    A["Network"] --> B["TLS"]
+    B --> C["SASL / mTLS"]
+    C --> D["Principal"]
+    D --> E["ACL authorization"]
+    E --> F["Allowed operation"]
 ```
 
-The senior approach is:
+## 21.2 The Three Questions of Kafka Security
+
+Kafka security is easiest to understand as three separate concerns:
 
 ``` text
-Symptom
-   ↓
-Define scope
-   ↓
-Collect evidence
-   ↓
-Classify failure
-   ↓
-Form hypotheses
-   ↓
-Test highest-probability hypothesis
-   ↓
-Mitigate
-   ↓
-Verify
+Encryption
+    Can someone read or modify traffic?
+
+Authentication
+    Who is connecting?
+
+Authorization
+    What may that identity do?
 ```
 
-Kafka problems are frequently symptoms of another bottleneck.
-
-------------------------------------------------------------------------
-
-## 21.3 The Universal Kafka Diagnostic Framework
-
-Use this sequence whenever the scenario is unclear:
+A secure Kafka deployment commonly combines:
 
 ``` text
-1. Scope
-2. Connectivity
-3. Metadata
-4. Kafka state
-5. Client state
-6. Resource utilization
-7. Application behavior
-8. Configuration
-9. Security
-10. Recent changes
+TLS
+    -> transport encryption and integrity
+
+SASL / mTLS
+    -> authentication
+
+ACLs
+    -> authorization
 ```
 
-Do not mechanically execute all ten steps. Use the symptom to prioritize
-them.
+Authentication does not imply authorization.
 
-------------------------------------------------------------------------
-
-## 21.4 First Question: What Changed?
-
-A powerful production question is:
-
-> What changed immediately before the incident?
-
-Possible changes:
-
--   deployment
--   configuration
--   broker restart
--   network change
--   certificate rotation
--   ACL modification
--   topic partition increase
--   consumer scaling
--   producer change
--   schema change
--   traffic increase
--   infrastructure migration
-
-Recent changes dramatically increase the probability of causal
-relationships.
-
-------------------------------------------------------------------------
-
-## 21.5 Second Question: What Is the Blast Radius?
-
-Determine whether the problem affects:
+A client can be:
 
 ``` text
-One record
-One partition
-One consumer
-One topic
-One consumer group
-One broker
-Multiple brokers
-Entire cluster
-Multiple applications
+Authenticated = YES
+Authorized    = NO
 ```
 
-Blast radius is one of the fastest ways to narrow the hypothesis space.
+---
 
-------------------------------------------------------------------------
+## 21.3 Kafka Security Protocols
 
-## Producer Scenarios
+Kafka commonly uses four security protocol combinations:
 
-## 21.6 Scenario 1 --- Producer Cannot Connect
+  Protocol             TLS encryption   SASL authentication
+  ------------------ ---------------- ---------------------
+  `PLAINTEXT`                      No                    No
+  `SSL`                           Yes                    No
+  `SASL_PLAINTEXT`                 No                   Yes
+  `SASL_SSL`                      Yes                   Yes
 
-Symptoms:
+Certification shortcut:
 
 ``` text
-Producer startup fails.
-Connection timeout.
+SSL  = TLS
+SASL = authentication
+ACL  = authorization
 ```
 
-Check:
+Therefore:
 
 ``` text
-DNS
-TCP
-listener
-advertised.listeners
-security protocol
+SASL_SSL
+    = SASL authentication + TLS
+
+SASL_PLAINTEXT
+    = SASL authentication without TLS transport encryption
 ```
 
-Do not immediately tune producer retries.
+---
 
-Likely causes include wrong hostname, wrong port, firewall rules,
-incorrect advertised listeners, wrong security protocol, TLS failure, or
-SASL failure.
+## 21.4 TLS Fundamentals
 
-------------------------------------------------------------------------
+TLS provides:
 
-## 21.7 Scenario 2 --- Bootstrap Works, Metadata Fails
+- confidentiality
+- integrity
+- server authentication
+- optionally client authentication
 
-Symptoms:
+Simplified flow:
 
 ``` text
-Producer reaches bootstrap broker.
-Then requests to other brokers fail.
+Client                         Broker
+  |                              |
+  | ClientHello                  |
+  |----------------------------->|
+  |                              |
+  | ServerHello + Certificate    |
+  |<-----------------------------|
+  |                              |
+  | Validate certificate         |
+  |                              |
+  | Establish session keys       |
+  |<============================>|
+  |                              |
+  | Encrypted Kafka traffic      |
+  |<============================>|
 ```
 
-Strong hypotheses:
+The certificate is meaningful only when the client can validate its
+trust chain and endpoint identity.
+
+---
+
+## 21.5 CA, Certificate, Keystore and Truststore
+
+A typical PKI hierarchy:
 
 ``` text
-advertised.listeners
-routing
-DNS
-firewall
+Root CA
+   |
+Intermediate CA
+   |
+   +---- Broker certificate
+   +---- Broker certificate
+   +---- Client certificate
 ```
 
-Bootstrap provides initial discovery. Kafka then returns broker
-endpoints through metadata.
+### Keystore
 
-Key lesson:
-
-``` text
-Bootstrap connectivity ≠ cluster connectivity
-```
-
-------------------------------------------------------------------------
-
-## 21.8 Scenario 3 --- TLS Handshake Failure
-
-Symptoms:
+Contains the application's own identity:
 
 ``` text
-SSL handshake failed
-certificate validation error
-```
-
-Investigate:
-
-``` text
-CA / truststore
-certificate validity
-SAN / hostname
-TLS configuration
-listener configuration
-```
-
-Do not diagnose this as an ACL problem first. The connection has not
-reached authorization.
-
-------------------------------------------------------------------------
-
-## 21.9 Scenario 4 --- SASL Authentication Failure
-
-Symptoms:
-
-``` text
-Authentication failed
-Invalid credentials
-SASL handshake failure
-```
-
-Investigate:
-
-``` text
-security.protocol
-sasl.mechanism
-credentials
-JAAS configuration
-listener-specific SASL configuration
-```
-
-Distinguish TLS encryption from SASL authentication.
-
-------------------------------------------------------------------------
-
-## 21.10 Scenario 5 --- Authentication Works, Authorization Fails
-
-If the client successfully authenticates but a produce operation is
-denied, investigate:
-
-``` text
-ACL / authorization
+Private key
+Certificate
+Certificate chain
 ```
 
 Mental model:
 
 ``` text
-Authentication:
-"Who are you?"
-
-Authorization:
-"What are you allowed to do?"
+Keystore = "Who am I?"
 ```
 
-------------------------------------------------------------------------
+### Truststore
 
-## 21.11 Scenario 6 --- Producer Cannot Write
+Contains trusted CA/certificate material.
 
-Check in this order:
+Mental model:
 
 ``` text
-1. Can producer connect?
-2. Can it authenticate?
-3. Can it retrieve metadata?
-4. Is topic available?
-5. Is producer authorized?
-6. Is partition leader available?
-7. Is ISR/min.insync.replicas satisfied?
-8. Is message size acceptable?
+Truststore = "Who do I trust?"
 ```
 
-A replica-related write failure points toward replication/write
-durability conditions rather than basic connectivity.
-
-------------------------------------------------------------------------
-
-## 21.12 Scenario 7 --- Producer Latency Suddenly Increases
-
-Possible causes:
+Therefore:
 
 ``` text
-broker overload
-network latency
-disk pressure
-batching changes
-compression cost
-replication pressure
-leader imbalance
-acks configuration
+Client keystore
+    -> client private key + certificate, for mTLS
+
+Client truststore
+    -> CA certificates used to trust brokers
+
+Broker keystore
+    -> broker private key + certificate
+
+Broker truststore
+    -> CA certificates used to trust clients
 ```
 
-Do not automatically weaken durability settings to reduce latency.
+---
 
-------------------------------------------------------------------------
+## 21.6 TLS Hostname Verification
 
-## 21.13 Scenario 8 --- Producer Throughput Is Low
-
-Investigate:
+Suppose the client connects to:
 
 ``` text
-record size
-compression
-batch size
-linger
-partition count
-broker capacity
-network
-CPU
+broker-1.kafka.example.com
 ```
 
-A producer may fail to batch efficiently because records arrive slowly,
-traffic is spread across many partitions, or configuration prevents
-efficient batching.
-
-------------------------------------------------------------------------
-
-## 21.14 Scenario 9 --- Producer Buffer Exhaustion
-
-Buffer exhaustion can mean records accumulate faster than they can be
-sent.
-
-Possible causes:
+The certificate should contain that identity in its SAN:
 
 ``` text
-broker unavailable
-network bottleneck
-slow acknowledgements
-insufficient broker capacity
-too much application concurrency
+Subject Alternative Name:
+    DNS:broker-1.kafka.example.com
 ```
 
-Increasing buffer memory may only delay the symptom.
-
-------------------------------------------------------------------------
-
-## 21.15 Scenario 10 --- In-Flight Requests
-
-Changing `max.in.flight.requests.per.connection` can affect:
-
--   throughput
--   request concurrency
--   ordering behavior under retries
-
-Reason about its interaction with:
+The important relationship is:
 
 ``` text
-retries
-idempotence
-ordering
-in-flight requests
-```
-
-before changing it.
-
-------------------------------------------------------------------------
-
-## Consumer Scenarios
-
-## 21.16 Scenario 11 --- Consumer Lag Suddenly Increases
-
-First determine:
-
-``` text
-Is lag global or partition-specific?
-```
-
-Then inspect:
-
-``` text
-producer rate
-consumer processing rate
-consumer assignment
-consumer errors
-downstream dependency
-rebalance activity
-broker fetch performance
-```
-
-The fundamental relationship is:
-
-``` text
-Lag increases when:
-
-incoming rate > processing rate
-```
-
-for a sustained period.
-
-------------------------------------------------------------------------
-
-## 21.17 Scenario 12 --- One Partition Has Huge Lag
-
-Example:
-
-``` text
-P0 = 20
-P1 = 30
-P2 = 900000
-P3 = 25
-```
-
-Likely areas:
-
-``` text
-hot key
-partition skew
-slow processing
-poison record
-consumer assignment
-downstream dependency
-```
-
-Adding consumers does not automatically solve a single hot partition.
-
-------------------------------------------------------------------------
-
-## 21.18 Scenario 13 --- All Partitions Have Increasing Lag
-
-This points more toward:
-
-``` text
-consumer processing capacity
-downstream dependency
-broker fetch performance
-traffic increase
-```
-
-Compare:
-
-``` text
-producer throughput
-consumer throughput
-broker metrics
-application latency
-```
-
-------------------------------------------------------------------------
-
-## 21.19 Scenario 14 --- Consumer Group Rebalances Continuously
-
-Possible causes:
-
--   consumer crashes
--   session timeout
--   heartbeat failure
--   network instability
--   long processing
--   consumer deployment churn
--   coordinator problems
--   resource starvation
-
-First determine whether consumers are actually restarting. Then
-investigate heartbeat/liveness and processing behavior.
-
-------------------------------------------------------------------------
-
-## 21.20 Scenario 15 --- Consumer Processing Is Slow
-
-Suppose:
-
-``` text
-poll()
-→ process 500 records
-→ process takes 10 minutes
-```
-
-Potential issue:
-
-``` text
-consumer liveness / poll interval behavior
-```
-
-Do not blindly increase every timeout.
-
-Consider:
-
-``` text
-bounded processing
-smaller poll batches
-parallel processing with careful offset management
-```
-
-while preserving correctness.
-
-------------------------------------------------------------------------
-
-## 21.21 Scenario 16 --- Consumer Crashes on One Record
-
-Possible causes:
-
-``` text
-deserialization error
-schema incompatibility
-application bug
-poison message
-unexpected payload
-```
-
-Diagnostic sequence:
-
-``` text
-Identify partition
-Identify offset
-Inspect record
-Check deserializer/schema
-Inspect application logs
-```
-
-------------------------------------------------------------------------
-
-## 21.22 Scenario 17 --- Consumer Group Has No Active Members
-
-If lag exists but the group has no members, possible causes include:
-
--   application down
--   deployment issue
--   authentication failure
--   configuration failure
--   startup crash
--   network problem
-
-Check the application before manipulating offsets.
-
-------------------------------------------------------------------------
-
-## 21.23 Scenario 18 --- Consumer Has Topic Access but Cannot Join Group
-
-Possible security issue:
-
-``` text
-topic READ allowed
-group authorization denied
-```
-
-This is a classic authorization distinction.
-
-------------------------------------------------------------------------
-
-## Replication and Broker Scenarios
-
-## 21.24 Scenario 19 --- Broker Disk Is Filling
-
-First determine why disk is growing.
-
-Possible causes:
-
--   retention
--   compaction
--   traffic increase
--   consumer lag
--   replication
--   segment behavior
--   incorrect retention configuration
-
-Do not manually delete Kafka log files.
-
-------------------------------------------------------------------------
-
-## 21.25 Scenario 20 --- Retention Appears Not to Work
-
-Investigate:
-
-``` text
-retention.ms
-retention.bytes
-cleanup.policy
-segment.ms
-segment.bytes
-topic-level overrides
-broker defaults
-```
-
-Retention is evaluated around log segments, so expiration is not an
-exact per-record timestamp deletion mechanism.
-
-------------------------------------------------------------------------
-
-## 21.26 Scenario 21 --- Compacted Topic Keeps Growing
-
-Possible explanations:
-
-``` text
-keys are unique
-tombstones have not been removed yet
-compaction has not caught up
-compaction configuration
-segment state
-```
-
-Compaction does not mean instantaneous one-record-per-key storage.
-
-------------------------------------------------------------------------
-
-## 21.27 Scenario 22 --- ISR Shrinks
-
-Example:
-
-``` text
-Replicas: 1,2,3
-ISR:      1,2
-```
-
-Investigate broker 3:
-
-``` text
-CPU
-disk
-network
-broker logs
-replica fetcher health
-resource saturation
-```
-
-If many partitions lose the same broker from ISR, suspect a broker-level
-problem.
-
-------------------------------------------------------------------------
-
-## 21.28 Scenario 23 --- Multiple Brokers Leave ISR
-
-If many partitions simultaneously show replication problems, consider:
-
-``` text
-network incident
-cluster overload
-disk subsystem
-controller issues
-large recovery event
-```
-
-The blast radius is now larger.
-
-------------------------------------------------------------------------
-
-## 21.29 Scenario 24 --- `min.insync.replicas` Blocks Writes
-
-Suppose:
-
-``` text
-RF = 3
-min.insync.replicas = 2
-ISR = 1
-```
-
-With sufficiently strong producer acknowledgement requirements, writes
-may fail because the durability condition cannot be satisfied.
-
-This is intentional durability protection.
-
-Do not automatically reduce `min.insync.replicas` during an incident.
-
-------------------------------------------------------------------------
-
-## 21.30 Scenario 25 --- Unclean Leader Election
-
-If no in-sync replica is available, allowing an out-of-sync replica to
-become leader can restore availability at the potential cost of data
-loss.
-
-Trade-off:
-
-``` text
-Availability
-     ↕
-Data safety
-```
-
-------------------------------------------------------------------------
-
-## 21.31 Scenario 26 --- Broker Failure
-
-Suppose broker 2 crashes.
-
-Investigate:
-
-``` text
-Which partitions had broker 2 as leader?
-Which had broker 2 as replica?
-Did leaders move?
-Did ISR recover?
-Are clients reconnecting?
-Is another broker overloaded?
-```
-
-A broker failure can trigger leader movement, recovery, replication
-traffic, load redistribution, and client reconnection.
-
-------------------------------------------------------------------------
-
-## 21.32 Scenario 27 --- Broker Recovers but Cluster Is Slow
-
-Recovery can generate significant:
-
-``` text
-replication traffic
-disk IO
-network IO
-```
-
-This can affect normal application traffic.
-
-Recovery capacity must therefore be considered during capacity planning.
-
-------------------------------------------------------------------------
-
-## 21.33 Scenario 28 --- Hot Leader
-
-If one broker hosts many high-volume partition leaders:
-
-``` text
-broker 2 CPU/network/request latency >> others
-```
-
-Investigate:
-
-``` text
-leader distribution
-partition traffic
-replica placement
-```
-
-------------------------------------------------------------------------
-
-## 21.34 Scenario 29 --- Hot Partition
-
-A partition receives dramatically more traffic than others.
-
-Possible cause:
-
-``` text
-poor key distribution
-```
-
-If many records share one key:
-
-``` text
-same key → same partition
-```
-
-Kafka cannot parallelize that partition across multiple consumers in the
-same group.
-
-------------------------------------------------------------------------
-
-## 21.35 Scenario 30 --- Adding Partitions Changes Key Distribution
-
-Increasing partition count can change key-to-partition mapping depending
-on the partitioning algorithm.
-
-Potential effects:
-
--   ordering assumptions
--   stateful processing
--   locality
--   downstream partition alignment
-
-Partition count is an architectural decision, not merely a capacity
-knob.
-
-------------------------------------------------------------------------
-
-## Networking and Security Scenarios
-
-## 21.36 Scenario 31 --- Network Timeout
-
-Distinguish:
-
-``` text
-connection refused
-```
-
-from:
-
-``` text
-connection timeout
-```
-
-Connection refused usually means the host is reachable but the port is
-not accepting connections.
-
-A timeout often indicates routing, firewall, security group, or
-unreachable endpoint problems.
-
-------------------------------------------------------------------------
-
-## 21.37 Scenario 32 --- DNS Resolves but Kafka Fails
-
-DNS success proves only:
-
-``` text
-hostname → IP resolution
-```
-
-It does not prove:
-
-``` text
-TCP connectivity
-TLS
-SASL
-Kafka protocol
-authorization
-```
-
-Continue down the stack.
-
-------------------------------------------------------------------------
-
-## 21.38 Scenario 33 --- TLS Works Internally but Fails Externally
-
-Likely areas:
-
-``` text
-external listener
-advertised hostname
+advertised.listeners
+        |
+        v
+hostname used by client
+        |
+        v
 certificate SAN
-external CA trust
-load balancer
-firewall/network path
 ```
 
-The certificate must be valid for the hostname external clients actually
-use.
+All three must agree.
 
-------------------------------------------------------------------------
+A hostname mismatch should be fixed by correcting the certificate or
+endpoint identity, not by blindly disabling hostname verification.
 
-## 21.39 Scenario 34 --- SASL_SSL vs SSL
+---
+
+## 21.7 Mutual TLS
+
+Normal TLS can authenticate the broker:
 
 ``` text
-SSL
+Client -> verifies Broker
 ```
 
-provides TLS encryption and can provide TLS client authentication.
+Mutual TLS adds:
+
+``` text
+Client -> verifies Broker
+Broker -> verifies Client
+```
+
+For mandatory client certificates:
+
+``` properties
+ssl.client.auth=required
+```
+
+Typical values:
+
+``` text
+none
+requested
+required
+```
+
+`requested` does not enforce mTLS.
+
+---
+
+## 21.8 TLS Failure Patterns
+
+---
+  Symptom                             Likely cause
+  ----------------------------------- -----------------------------------
+  Unknown CA                          Truststore does not trust CA
+
+  PKIX path failure                   Invalid/incomplete certificate
+                                      chain
+
+  Hostname mismatch                   SAN does not match endpoint
+
+  Certificate expired                 Certificate lifecycle problem
+
+  Handshake failure                   TLS protocol/cipher/certificate
+                                      mismatch
+
+  Client certificate required         Missing client keystore
+
+  Works only when hostname            Endpoint/certificate identity
+  verification is disabled            mismatch
+---
+
+Useful diagnostics:
+
+``` bash
+openssl s_client   -connect broker-1.example.com:9093   -showcerts
+```
+
+``` bash
+openssl x509   -in broker.crt   -text   -noout
+```
+
+Inspect:
+
+- issuer
+- subject
+- SAN
+- validity
+- key usage
+- extended key usage
+- certificate chain
+
+---
+
+## 21.9 Listener-Specific Security
+
+Kafka listeners can expose different security protocols.
+
+Example:
+
+``` properties
+listeners=INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9093
+
+listener.security.protocol.map=INTERNAL:SSL,EXTERNAL:SASL_SSL
+```
+
+Conceptually:
+
+``` text
+Internal applications
+        |
+       SSL
+        |
+     Brokers
+
+External applications
+        |
+    SASL_SSL
+        |
+     Brokers
+```
+
+This is a common production pattern.
+
+---
+
+## 21.10 `listeners` vs `advertised.listeners`
+
+Remember:
+
+``` text
+listeners
+    = where Kafka binds/listens
+
+advertised.listeners
+    = endpoints Kafka returns to clients
+```
+
+Example:
+
+``` properties
+listeners=CLIENT://0.0.0.0:9093
+
+advertised.listeners=CLIENT://broker-1.example.com:9093
+```
+
+A broker can listen correctly while advertising an endpoint that a
+client cannot reach.
+
+---
+
+## 21.11 SASL
+
+Kafka supports SASL mechanisms including:
+
+``` text
+GSSAPI
+PLAIN
+SCRAM-SHA-256
+SCRAM-SHA-512
+OAUTHBEARER
+```
+
+SASL can run over:
+
+``` text
+SASL_PLAINTEXT
+```
+
+or:
 
 ``` text
 SASL_SSL
 ```
 
-combines:
+SASL provides authentication. TLS determines whether the transport is
+encrypted.
+
+---
+
+## 21.12 SASL/PLAIN
+
+Example:
+
+``` properties
+security.protocol=SASL_SSL
+sasl.mechanism=PLAIN
+
+sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="orders-service" password="secret";
+```
+
+Important:
 
 ``` text
-TLS
+PLAIN = authentication
+PLAIN != encryption
+```
+
+For production transport security:
+
+``` text
+SASL_SSL + PLAIN
+```
+
+is preferable to:
+
+``` text
+SASL_PLAINTEXT + PLAIN
+```
+
+---
+
+## 21.13 SCRAM
+
+Kafka supports:
+
+``` text
+SCRAM-SHA-256
+SCRAM-SHA-512
+```
+
+Example:
+
+``` properties
+security.protocol=SASL_SSL
+sasl.mechanism=SCRAM-SHA-512
+
+sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="orders-service" password="secret";
+```
+
+SCRAM uses salted challenge-response authentication.
+
+It does not replace TLS.
+
+A common production design is:
+
+``` text
+SCRAM
 +
-SASL authentication
-```
-
-Changing one to the other changes the security handshake.
-
-------------------------------------------------------------------------
-
-## 21.40 Scenario 35 --- Wrong Listener Security Protocol
-
-If a listener expects SASL but the client uses plain SSL configuration,
-authentication can fail.
-
-The client configuration must match the listener's security
-expectations.
-
-------------------------------------------------------------------------
-
-## 21.41 Scenario 36 --- ACL Looks Correct but Access Still Fails
-
-Investigate:
-
-``` text
-principal
-resource
-operation
-pattern type
-host restriction
-super-user status
-```
-
-A common mistake is granting access to one principal while the client
-actually authenticates as another.
-
-------------------------------------------------------------------------
-
-## 21.42 Scenario 37 --- Consumer Can Read Topic but Cannot Commit
-
-Possible area:
-
-``` text
-consumer-group authorization
-```
-
-Topic authorization does not automatically grant every group operation.
-
-------------------------------------------------------------------------
-
-## 21.43 Scenario 38 --- Producer Gets Message Too Large
-
-Relevant limits can exist at multiple levels:
-
-``` text
-producer
-broker
-topic
-consumer
-```
-
-A consistent configuration must exist across the path.
-
-------------------------------------------------------------------------
-
-## Delivery Semantics and Application Scenarios
-
-## 21.44 Scenario 39 --- Increasing JVM Heap Makes Kafka Slower
-
-Kafka relies heavily on the OS page cache.
-
-Excessive heap allocation can reduce memory available for:
-
-``` text
-page cache
-```
-
-and can increase:
-
-``` text
-GC
-disk reads
-latency
-```
-
-More heap is not automatically more Kafka performance.
-
-------------------------------------------------------------------------
-
-## 21.45 Scenario 40 --- CPU Is High
-
-Determine which workload consumes it:
-
-``` text
-request processing
-compression
-decompression
 TLS
-GC
-replication
+=
+SASL_SSL
 ```
 
-Kafka performance tuning is workload-specific.
+Example credential creation:
 
-------------------------------------------------------------------------
+``` bash
+kafka-configs.sh   --bootstrap-server broker-1:9092   --alter   --add-config 'SCRAM-SHA-512=[password=secret]'   --entity-type users   --entity-name orders-service
+```
 
-## 21.46 Scenario 41 --- Disk Latency Is High
+---
 
-Investigate:
+## 21.14 Kerberos / GSSAPI
+
+GSSAPI is commonly used with Kerberos.
+
+Conceptually:
 
 ``` text
-throughput
-IOPS
-queue depth
-replication recovery
-retention deletion
-compaction
-filesystem
-volume characteristics
+Kerberos KDC
+      |
+    ticket
+      |
+      v
+Kafka client
+      |
+ SASL/GSSAPI
+      |
+      v
+Kafka broker
 ```
 
-Do not confuse disk capacity with disk performance.
+A principal can resemble:
 
-------------------------------------------------------------------------
+``` text
+orders-service@EXAMPLE.COM
+```
 
-## 21.47 Scenario 42 --- Consumer Lag Is Caused by Downstream Database
+Kerberos is particularly relevant in enterprise environments with an
+existing centralized identity infrastructure.
+
+---
+
+## 21.15 OAUTHBEARER
+
+OAuth bearer authentication uses an access token:
+
+``` text
+Client
+  |
+  v
+Identity Provider
+  |
+ token
+  |
+  v
+Kafka client
+  |
+SASL/OAUTHBEARER
+  |
+  v
+Kafka broker
+```
+
+The broker validates the token and establishes the Kafka principal.
+
+Production deployments should use an appropriate trusted OAuth/OIDC
+identity infrastructure.
+
+---
+
+## 21.16 JAAS and Listener-Specific SASL Configuration
+
+Client example:
+
+``` properties
+sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="orders-service" password="secret";
+```
+
+For brokers, listener/mechanism-specific configuration follows the
+pattern:
+
+``` properties
+listener.name.<listener>.<mechanism>.sasl.jaas.config=...
+```
+
+Do not assume a global SASL setting applies identically to every
+listener.
+
+Secrets should not be committed to Git.
+
+Prefer:
+
+``` text
+Secret manager
+      |
+      v
+Deployment system
+      |
+      v
+Kafka configuration
+```
+
+---
+
+## 21.17 Kafka Principals
+
+After authentication Kafka has an identity:
+
+``` text
+Principal
+```
+
+Examples:
+
+``` text
+User:alice
+User:orders-service
+User:kafka
+```
+
+Different authentication mechanisms produce identities differently.
+
+Examples:
+
+``` text
+SCRAM username
+       |
+       v
+User:orders-service
+```
+
+or:
+
+``` text
+TLS client certificate
+       |
+       v
+Kafka principal
+```
+
+Authorization operates on the resulting principal.
+
+---
+
+## 21.18 Authorization and ACLs
+
+An ACL can be viewed as:
+
+``` text
+Principal
+    +
+ALLOW/DENY
+    +
+Operation
+    +
+Resource
+    +
+Host
+```
 
 Example:
 
 ``` text
-Kafka consumer
-      ↓
-Database write
-      ↓
-Database latency increases
-      ↓
-Consumer throughput decreases
-      ↓
-Kafka lag increases
+User:orders-service
+ALLOW
+WRITE
+Topic:orders
+Host:*
 ```
 
-The symptom is Kafka lag, but the root cause is the database.
-
-------------------------------------------------------------------------
-
-## 21.48 Scenario 43 --- Consumer Lag After Deployment
-
-Compare:
+Authorization answers:
 
 ``` text
-before deployment
-vs
-after deployment
+Can this principal perform this Kafka operation?
 ```
 
-Check:
+It does not authenticate the principal.
 
--   application latency
--   error rate
--   processing time
--   consumer count
--   assignment
--   configuration
--   serialization
--   downstream dependencies
+---
 
-------------------------------------------------------------------------
+## 21.19 Important Kafka ACL Resources
 
-## 21.49 Scenario 44 --- Producer Works but Records Are Delayed
-
-Possible causes:
+Important resource types include:
 
 ``` text
-linger.ms
-batching
-acks
-broker latency
-network
-application flush behavior
+Topic
+Group
+Cluster
+TransactionalId
+DelegationToken
 ```
 
-Trace:
+A consumer commonly needs authorization involving:
 
 ``` text
-produce timestamp
-broker append behavior
-consumer processing
-application logs
+Topic
++
+Consumer Group
 ```
 
-------------------------------------------------------------------------
-
-## 21.50 Scenario 45 --- Ordering Requirement
-
-Requirement:
-
-> Events for the same account must be processed in order.
-
-Strong design:
+A transactional producer may require permissions involving:
 
 ``` text
-key = accountId
+Topic
++
+TransactionalId
++
+other protocol operations
 ```
 
-Same-key records are routed consistently to the same partition under
-normal keyed partitioning.
+Always reason from the Kafka feature being used.
 
-Ordering is primarily partition-scoped.
+---
 
-------------------------------------------------------------------------
+## 21.20 Important Kafka ACL Operations
 
-## 21.51 Scenario 46 --- Need Global Ordering
-
-Requirement:
-
-> Every event in the entire topic must be globally ordered.
-
-Simplest architecture:
+Common operations include:
 
 ``` text
-one partition
+READ
+WRITE
+CREATE
+DELETE
+ALTER
+DESCRIBE
+DESCRIBE_CONFIGS
+ALTER_CONFIGS
+CLUSTER_ACTION
+IDEMPOTENT_WRITE
 ```
 
-This sacrifices partition-level parallelism.
+Do not memorize only strings.
 
-------------------------------------------------------------------------
-
-## 21.52 Scenario 47 --- Duplicate Records
-
-Possible causes:
+Ask:
 
 ``` text
-producer retry
-at-least-once delivery
-consumer retry
-application replay
-offset commit timing
+What Kafka operation is the client performing?
+What resource does it operate on?
+What principal is making the request?
 ```
 
-Trace where the duplicate was introduced before blaming Kafka.
+---
 
-------------------------------------------------------------------------
+## 21.21 `kafka-acls.sh`
 
-## 21.53 Scenario 48 --- Consumer Processes Record but Crashes Before Commit
+List ACLs:
 
-Sequence:
+``` bash
+kafka-acls.sh   --bootstrap-server broker-1:9092   --list
+```
+
+Grant topic write:
+
+``` bash
+kafka-acls.sh   --bootstrap-server broker-1:9092   --add   --allow-principal User:orders-service   --operation Write   --topic orders
+```
+
+Grant topic read:
+
+``` bash
+kafka-acls.sh   --bootstrap-server broker-1:9092   --add   --allow-principal User:analytics   --operation Read   --topic orders
+```
+
+Grant group read:
+
+``` bash
+kafka-acls.sh   --bootstrap-server broker-1:9092   --add   --allow-principal User:analytics   --operation Read   --group analytics-group
+```
+
+In a secured cluster the CLI itself must authenticate and be authorized.
+
+---
+
+## 21.22 ACL Pattern Types
+
+Kafka supports resource patterns including:
 
 ``` text
-poll
- ↓
-process
- ↓
-crash
- ↓
-offset not committed
- ↓
-record processed again
+LITERAL
+PREFIXED
 ```
 
-This is expected under at-least-once processing.
-
-The application must tolerate duplicate processing or use an appropriate
-stronger design.
-
-------------------------------------------------------------------------
-
-## 21.54 Scenario 49 --- Exactly-Once Requirement
-
-For Kafka-to-Kafka read-process-write workloads, consider:
+and matching/query patterns such as:
 
 ``` text
-Kafka transactions
-transactional producer
-read-process-write
-isolation.level=read_committed
+ANY
+MATCH
 ```
 
-Exactly-once Kafka processing does not automatically make arbitrary
-external database side effects exactly once.
-
-------------------------------------------------------------------------
-
-## 21.55 Scenario 50 --- Transactional Producer Fails
-
-Possible areas:
+Literal:
 
 ``` text
-transactional.id
-authorization
-transaction coordinator
-timeouts
-broker availability
-producer fencing
+orders
 ```
 
-Incorrect reuse of transactional identities can trigger fencing.
+matches the exact resource.
 
-------------------------------------------------------------------------
-
-## 21.56 Scenario 51 --- Consumer Uses `read_uncommitted`
-
-A consumer using:
+Prefixed:
 
 ``` text
-isolation.level=read_uncommitted
+orders
 ```
 
-can observe transactional records that are not committed transactional
-results.
-
-For committed-only visibility:
+can match resources beginning with that prefix:
 
 ``` text
-read_committed
+orders
+orders-eu
+orders-us
+orders-v2
 ```
 
-is relevant.
+### Certification trap
 
-------------------------------------------------------------------------
+A prefix ACL can unintentionally authorize future resources.
 
-## 21.57 Scenario 52 --- Schema Compatibility Failure
+Use prefixes deliberately.
 
-Investigate:
+---
+
+## 21.23 Allow and Deny
+
+ACLs can contain:
 
 ``` text
-schema evolution rule
-producer schema
-consumer expectations
-subject strategy
-serialization configuration
+ALLOW
+DENY
 ```
 
-Do not bypass schema validation merely to restore deployment speed.
-
-------------------------------------------------------------------------
-
-## Connect, Streams, and KRaft Scenarios
-
-## 21.58 Scenario 53 --- Kafka Connect Task Fails
-
-Classify:
+Example:
 
 ``` text
-connector
-task
-worker
-source
-sink
-external system
+ALLOW User:app READ orders
+DENY  User:app WRITE orders
 ```
 
-Check:
+Authorization decisions require considering matching:
 
 ``` text
-worker logs
-connector configuration
-task state
-external endpoint
-authentication
-serialization
-offset/state
+Principal
+Operation
+Resource
+Pattern
+Host
+ALLOW/DENY
 ```
 
-Not every Connect problem is a broker problem.
+Do not infer the result from one ACL entry without considering other
+matching rules.
 
-------------------------------------------------------------------------
+---
 
-## 21.59 Scenario 54 --- Kafka Streams Application Falls Behind
+## 21.24 StandardAuthorizer in KRaft
 
-Check:
+Modern KRaft deployments use Kafka's built-in authorizer:
+
+``` properties
+authorizer.class.name=org.apache.kafka.metadata.authorizer.StandardAuthorizer
+```
+
+This is an important distinction from older ZooKeeper-era Kafka
+material.
+
+Certification rule:
+
+> First identify whether the question describes a KRaft cluster or an
+> older ZooKeeper-based cluster.
+
+Then choose the appropriate authorization configuration.
+
+---
+
+## 21.25 Super Users
+
+Kafka can define super users:
+
+``` properties
+super.users=User:admin;User:kafka
+```
+
+Super users bypass ordinary ACL restrictions.
+
+Useful for:
+
+- infrastructure administration
+- broker identities
+- recovery/bootstrap operations
+
+But application identities should normally use least privilege.
+
+Bad:
 
 ``` text
-input rate
-processing latency
-task assignment
-state-store performance
-disk
-changelog traffic
-rebalance
-downstream sinks
+every application -> super user
 ```
 
-Streams performance problems can originate outside Kafka brokers.
-
-------------------------------------------------------------------------
-
-## 21.60 Scenario 55 --- Streams Rebalance Loop
-
-Potential causes:
+Good:
 
 ``` text
-instance instability
-network issues
-processing stalls
-coordinator problems
-deployment churn
-state restoration problems
+application -> minimal ACLs
 ```
 
-Check application logs and task state before modifying broker
-configuration.
+---
 
-------------------------------------------------------------------------
+## 21.26 Least Privilege
 
-## 21.61 Scenario 56 --- KRaft Metadata Quorum Problem
-
-Symptoms:
+Suppose:
 
 ``` text
-metadata operations unstable
-controller changes
-cluster management operations fail
+orders-service
 ```
 
-Investigate:
+needs:
 
 ``` text
-controller reachability
-quorum voters
-metadata leader
-metadata log progression
-network
-disk
+WRITE orders
+READ order-events
+READ orders-group
 ```
 
-Separate metadata quorum health from partition data replication.
-
-------------------------------------------------------------------------
-
-## Operations and Architecture Scenarios
-
-## 21.62 Scenario 57 --- Broker Restart During Incident
-
-Before restarting another broker, ask:
+Do not automatically grant:
 
 ``` text
-How many replicas are already out of ISR?
-What is the current RF?
-What is min.insync.replicas?
-What recovery is happening?
+DELETE *
+ALTER *
+CLUSTER_ACTION
 ```
 
-A second failure can turn a degraded system into an unavailable one.
-
-------------------------------------------------------------------------
-
-## 21.63 Scenario 58 --- Two Brokers Fail
-
-Do not reason only from:
+Authorization should map:
 
 ``` text
-RF = 3
+Business responsibility
+        |
+        v
+Required Kafka operations
+        |
+        v
+Minimal ACLs
 ```
 
-Examine:
+---
+
+## 21.27 Producer Authorization
+
+A producer commonly needs:
 
 ``` text
-which brokers host which replicas
+WRITE
 ```
 
-Failure tolerance depends on replica placement.
+on its target topic.
 
-------------------------------------------------------------------------
+Features such as idempotence and transactions can introduce additional
+authorization requirements.
 
-## 21.64 Scenario 59 --- Rack/AZ Awareness
-
-If replicas are distributed across:
+For certification questions, consider:
 
 ``` text
-AZ-1
-AZ-2
-AZ-3
+Producer
+  |
+  +-- topic write
+  +-- idempotence
+  +-- transactional.id
+  +-- transaction lifecycle
 ```
 
-a single AZ failure is less likely to remove all replicas of a
-partition.
+Do not assume ordinary topic WRITE is the complete permission model for
+every producer feature.
 
-Replication factor without failure-domain-aware placement is not
-sufficient HA design.
+---
 
-------------------------------------------------------------------------
+## 21.28 Consumer Authorization
 
-## 21.65 Scenario 60 --- Cross-Region Replication Is Slow
-
-Possible causes:
+A consumer commonly needs:
 
 ``` text
-WAN latency
-bandwidth
-network saturation
-replication architecture
-producer traffic
-remote cluster capacity
+READ
 ```
 
-Cross-region traffic does not have the same characteristics as intra-AZ
+on the topic.
+
+It also operates within a:
+
+``` text
+Consumer Group
+```
+
+Therefore authorization should account for:
+
+``` text
+Topic permissions
++
+Group permissions
+```
+
+Authentication can succeed while group or topic authorization fails.
+
+---
+
+## 21.29 Transactional Producer Authorization
+
+A transactional producer uses:
+
+``` properties
+transactional.id=orders-producer
+```
+
+Authorization can therefore involve:
+
+``` text
+Topic
+TransactionalId
+Cluster/protocol operations
+```
+
+Think about the complete lifecycle:
+
+``` text
+authenticate
+    ↓
+begin transaction
+    ↓
+write records
+    ↓
+send offsets
+    ↓
+commit transaction
+```
+
+---
+
+## 21.30 Inter-Broker Security
+
+Kafka brokers communicate with one another.
+
+Client security:
+
+``` text
+Client -> Broker
+```
+
+is not enough.
+
+Also secure:
+
+``` text
+Broker -> Broker
+```
+
+Example:
+
+``` properties
+security.inter.broker.protocol=SASL_SSL
+sasl.mechanism.inter.broker.protocol=SCRAM-SHA-512
+```
+
+This gives:
+
+``` text
+TLS encryption
++
+SCRAM authentication
+```
+
+A secure external listener does not automatically secure inter-broker
 traffic.
 
-------------------------------------------------------------------------
+---
 
-## 21.66 Scenario 61 --- Cluster Expansion
+## 21.31 KRaft Controller Security
 
-You add brokers but observe little improvement.
+KRaft introduces controller quorum communication.
 
-Possible reason:
-
-``` text
-existing partitions have not been redistributed
-```
-
-Adding brokers does not automatically guarantee balanced replica
-placement.
-
-You may need:
+A production deployment must account for:
 
 ``` text
-partition reassignment
-leadership balancing
+Client listeners
+Inter-broker communication
+Controller listeners
+Administrative access
 ```
 
-depending on the problem.
-
-------------------------------------------------------------------------
-
-## 21.67 Scenario 62 --- Too Many Partitions
-
-Symptoms may include:
+Think of these as distinct communication paths.
 
 ``` text
-large metadata footprint
-longer recovery
-more open files
-more replication overhead
-controller pressure
+Client plane
+     |
+     v
+Kafka brokers
+     |
+     +---- inter-broker plane
+     |
+     +---- controller/control plane
 ```
 
-Do not automatically increase partitions for more parallelism.
+Securing one plane does not automatically secure the others.
 
-------------------------------------------------------------------------
+---
 
-## 21.68 Scenario 63 --- Disk Capacity Planning
+## 21.32 Security Is Not Network Isolation
 
-Suppose:
+TLS does not replace:
 
 ``` text
-ingress = 500 GB/day
-RF = 3
-retention = 7 days
+firewalls
+security groups
+private subnets
+routing
+VPN/private connectivity
+network segmentation
 ```
 
-Raw replicated storage before overhead:
+Use defense in depth:
 
 ``` text
-500 × 7 × 3
-= 10,500 GB
-= 10.5 TB
+Network isolation
+      +
+TLS
+      +
+Authentication
+      +
+Authorization
+      +
+Observability
 ```
 
-Then add:
+---
+
+## 21.33 Security Troubleshooting Sequence
+
+Use this order:
 
 ``` text
-headroom
-recovery space
-segment overhead
-operational safety margin
+1. DNS
+2. TCP
+3. TLS handshake
+4. Certificate validation
+5. Hostname verification
+6. SASL authentication
+7. Kafka principal
+8. Metadata
+9. Advertised broker endpoints
+10. ACL authorization
+11. Application behavior
 ```
 
-Never size disks to the exact calculated minimum.
+This prevents mixing failure domains.
 
-------------------------------------------------------------------------
+---
 
-## 21.69 Scenario 64 --- Retention Calculation
-
-If:
+## 21.34 TCP vs TLS vs SASL vs ACL
 
 ``` text
-ingress = 100 GB/day
-retention = 3 days
-RF = 3
+TCP fails
+    -> listener/network/routing/firewall
+
+TCP works, TLS fails
+    -> certificate/TLS/endpoint
+
+TLS works, SASL fails
+    -> credentials/mechanism/JAAS
+
+SASL works, authorization fails
+    -> principal/ACL
+
+ACL works, application still fails
+    -> Kafka protocol/application
 ```
 
-raw replicated data:
+This is one of the most useful operational decision trees in the
+chapter.
 
-``` text
-100 × 3 × 3 = 900 GB
-```
+---
 
-Production sizing requires additional headroom.
-
-------------------------------------------------------------------------
-
-## 21.70 Scenario 65 --- Recovery Capacity
-
-Broker failure creates:
-
-``` text
-recovery traffic
-```
-
-that competes with:
-
-``` text
-application traffic
-```
-
-Therefore capacity planning must consider:
-
-``` text
-normal traffic
-+
-failure recovery
-```
-
-------------------------------------------------------------------------
-
-## 21.71 Scenario 66 --- Monitoring Shows High Request Queue
-
-Possible areas:
-
-``` text
-CPU
-request handler saturation
-network processors
-slow disk
-broker overload
-```
-
-Use metrics to identify whether CPU, disk, or network is limiting the
-broker.
-
-------------------------------------------------------------------------
-
-## 21.72 Scenario 67 --- Network Processor Idle Is Low
-
-Investigate:
-
-``` text
-network throughput
-request rate
-connections
-TLS overhead
-packet size
-broker capacity
-```
-
-Do not increase every broker thread count without evidence.
-
-------------------------------------------------------------------------
-
-## 21.73 Scenario 68 --- High GC Pause
-
-Investigate:
-
-``` text
-heap size
-allocation rate
-message sizes
-request volume
-GC configuration
-JVM version
-```
-
-Larger heap does not automatically mean better performance.
-
-------------------------------------------------------------------------
-
-## 21.74 Scenario 69 --- Connection Churn
-
-Symptoms:
-
-``` text
-many connection opens/closes
-CPU overhead
-authentication overhead
-TLS handshakes
-```
-
-Possible causes:
-
-``` text
-client lifecycle bug
-short-lived clients
-load balancer behavior
-network instability
-timeouts
-```
-
-Kafka clients should generally be long-lived.
-
-------------------------------------------------------------------------
-
-## 21.75 Scenario 70 --- Consumer Group Has Too Many Consumers
-
-Suppose:
-
-``` text
-partitions = 12
-consumers = 100
-```
-
-Most consumers cannot receive partitions.
-
-Potential overhead:
-
-``` text
-heartbeats
-connections
-rebalances
-resource usage
-```
-
-------------------------------------------------------------------------
-
-## 21.76 Scenario 71 --- Rebalance After Every Deployment
-
-Consumer restarts during deployment can cause expected rebalances.
-
-If rebalances are prolonged or frequent outside deployments,
-investigate:
-
-``` text
-stability
-timeouts
-processing
-network
-```
-
-------------------------------------------------------------------------
-
-## 21.77 Scenario 72 --- Producer Sends to Wrong Partition
-
-Check:
-
-``` text
-record key
-partitioner
-partition count
-custom partitioner
-```
-
-If a key is unexpectedly null, partitioning behavior can differ from
-keyed routing.
-
-------------------------------------------------------------------------
-
-## 21.78 Scenario 73 --- Same-Key Records Are Not Ordered
-
-Investigate:
-
-``` text
-Are all records using the same key?
-Has partition count changed?
-Is a custom partitioner involved?
-Are multiple topics involved?
-```
-
-Kafka ordering is scoped to a partition.
-
-------------------------------------------------------------------------
-
-## 21.79 Scenario 74 --- Duplicate Business Effects
-
-Trace:
-
-``` text
-record offset
-processing
-external side effect
-offset commit
-retry
-```
-
-A common sequence:
-
-``` text
-external side effect succeeds
-offset commit fails
-record is replayed
-```
-
-The external operation must be idempotent or coordinated appropriately.
-
-------------------------------------------------------------------------
-
-## 21.80 Scenario 75 --- Consumer Commits Before Processing
-
-If the application commits the offset before business processing:
-
-``` text
-offset committed
- ↓
-application crashes
- ↓
-record not processed
-```
-
-This can cause application-level message loss.
-
-------------------------------------------------------------------------
-
-## 21.81 Scenario 76 --- At-Most-Once vs At-Least-Once
-
-### At-most-once
-
-``` text
-commit
- ↓
-process
-```
-
-Possible result:
-
-``` text
-message lost
-```
-
-### At-least-once
-
-``` text
-process
- ↓
-commit
-```
-
-Possible result:
-
-``` text
-duplicate processing
-```
-
-------------------------------------------------------------------------
-
-## 21.82 Scenario 77 --- Consumer Wants More Parallelism
-
-Suppose:
-
-``` text
-topic = 4 partitions
-consumer group = 2 consumers
-```
-
-Increasing to four consumers can increase active partition parallelism.
-
-Increasing to twenty cannot create twenty-way partition parallelism for
-four partitions.
-
-------------------------------------------------------------------------
-
-## 21.83 Scenario 78 --- Producer Ordering and Retries
-
-When reliability settings change, reason about:
-
-``` text
-acks
-retries
-idempotence
-in-flight requests
-```
-
-The objective is:
-
-``` text
-required correctness + required performance
-```
-
-------------------------------------------------------------------------
-
-## 21.84 Scenario 79 --- Consumer Lag After Broker Failure
-
-Broker failure can cause:
-
-``` text
-leader movement
-reconnection
-fetch interruption
-partition recovery
-```
-
-Temporary lag may therefore be expected.
-
-The key question:
-
-> Does lag recover after the cluster stabilizes?
-
-------------------------------------------------------------------------
-
-## 21.85 Scenario 80 --- Cluster Is Healthy but Application Is Not
-
-If Kafka metrics show healthy:
-
-``` text
-broker CPU
-disk
-ISR
-request latency
-```
-
-but application processing is slow, investigate:
-
-``` text
-application CPU
-GC
-database
-HTTP dependencies
-thread pools
-serialization
-business logic
-```
-
-------------------------------------------------------------------------
-
-## Advanced Scenario Reasoning
-
-## 21.86 Scenario 81 --- The Best First Action
-
-Question:
-
-> Consumer lag is high. What should you do first?
-
-Weak:
-
-``` text
-Increase partitions.
-```
-
-Better:
-
-``` text
-Determine whether lag is global or partition-specific and inspect consumer processing/assignment.
-```
-
-------------------------------------------------------------------------
-
-## 21.87 Scenario 82 --- Broker Disk Exhaustion
-
-Weak:
-
-``` text
-Delete Kafka log files.
-```
-
-Strong:
-
-``` text
-Protect the broker, determine why storage grew, inspect retention/traffic, restore safe capacity, and avoid corrupting Kafka's managed log state.
-```
-
-------------------------------------------------------------------------
-
-## 21.88 Scenario 83 --- Producer Authorization Failure
-
-Weak:
-
-``` text
-Restart broker.
-```
-
-Strong:
-
-``` text
-Identify authenticated principal, target topic, requested operation, and matching ACLs.
-```
-
-------------------------------------------------------------------------
-
-## 21.89 Scenario 84 --- Bootstrap Works but Produce Fails
-
-Strong:
-
-``` text
-Inspect metadata and advertised broker endpoints, then verify DNS/TCP/security connectivity to the returned broker.
-```
-
-------------------------------------------------------------------------
-
-## 21.90 Scenario 85 --- ISR Shrinks
-
-Weak:
-
-``` text
-Increase replication factor.
-```
-
-Strong:
-
-``` text
-Identify which broker/replica is leaving ISR and investigate disk, network, CPU, and broker health.
-```
-
-------------------------------------------------------------------------
-
-## 21.91 Scenario 86 --- Kafka Throughput Is Low
-
-Weak:
-
-``` text
-Increase broker threads.
-```
-
-Strong:
-
-``` text
-Measure producer, broker, network, disk, request, and consumer behavior to identify the actual bottleneck.
-```
-
-------------------------------------------------------------------------
-
-## 21.92 Scenario 87 --- Broker Failure
-
-Weak:
-
-``` text
-Immediately restart every broker.
-```
-
-Strong:
-
-``` text
-Assess replica/ISR state, affected partitions, leader movement, and remaining failure tolerance before taking additional disruptive actions.
-```
-
-------------------------------------------------------------------------
-
-## 21.93 Scenario 88 --- Incident Prioritization
-
-Suppose:
-
-``` text
-ISR degraded
-consumer lag rising
-disk 85%
-```
-
-Prioritize based on risk.
-
-A reasonable approach is:
-
-``` text
-Protect cluster durability
-↓
-Prevent disk exhaustion
-↓
-Understand replication degradation
-↓
-Restore consumer processing
-```
-
-Exact priority depends on evidence and business impact.
-
-------------------------------------------------------------------------
-
-## 21.94 Scenario 89 --- Mitigation vs Root Cause
-
-Example:
-
-``` text
-Consumer lag = 2 million
-```
-
-Temporary mitigation:
-
-``` text
-scale consumers
-```
-
-Root cause:
-
-``` text
-database became 10× slower
-```
-
-A mature incident response records both:
-
-``` text
-mitigation
-+
-root cause
-```
-
-------------------------------------------------------------------------
-
-## 21.95 Scenario 90 --- Rollback
-
-If an incident begins immediately after a configuration deployment and
-evidence strongly indicates that configuration caused it:
-
-``` text
-rollback
-```
-
-may be safer than multiple experimental changes.
-
-------------------------------------------------------------------------
-
-## 21.96 Scenario 91 --- Change One Variable at a Time
-
-Bad troubleshooting:
-
-``` text
-Increase heap
-Increase threads
-Increase partitions
-Increase fetch size
-Change acks
-Restart brokers
-```
-
-Better:
-
-``` text
-Hypothesis
-↓
-One targeted change
-↓
-Observe
-↓
-Accept/reject hypothesis
-```
-
-------------------------------------------------------------------------
-
-## 21.97 Scenario 92 --- Evidence Hierarchy
-
-Useful evidence includes:
-
-``` text
-metrics
-logs
-Kafka metadata
-consumer-group state
-configuration
-network traces
-application traces
-recent changes
-```
-
-Correlate evidence across layers.
-
-------------------------------------------------------------------------
-
-## 21.98 Scenario 93 --- Logs vs Metrics vs Traces
-
-Logs answer:
-
-``` text
-What happened?
-```
-
-Metrics answer:
-
-``` text
-How often?
-How much?
-When?
-```
-
-Traces answer:
-
-``` text
-Where did latency travel?
-```
-
-Use all three when necessary.
-
-------------------------------------------------------------------------
-
-## 21.99 Scenario 94 --- Certification Time Management
-
-For a scenario question:
-
-### First 10 seconds
-
-Identify the domain.
-
-### Next 20 seconds
-
-Identify the symptom.
-
-### Next 30 seconds
-
-Eliminate answers from the wrong subsystem.
-
-Then choose the answer requiring the fewest unsupported assumptions.
-
-------------------------------------------------------------------------
-
-## 21.100 The Certification Elimination Method
-
-Suppose:
-
-``` text
-A. Increase JVM heap
-B. Change ACL
-C. Inspect advertised.listeners
-D. Increase partitions
-```
+## 21.35 Scenario --- Connection Refused
 
 Symptom:
 
 ``` text
-bootstrap succeeds, broker connections timeout
+Connection refused
 ```
 
-Eliminate:
+Start with:
 
 ``` text
-A — no evidence of GC
-B — authorization occurs later
-D — unrelated
+listener
+port
+broker process
+container port
+network path
 ```
 
-Choose:
+Typical causes:
+
+- nothing listening
+- wrong port
+- wrong listener
+- broker unavailable
+- container port not published
+
+Do not begin with ACLs.
+
+---
+
+## 21.36 Scenario --- Timeout
+
+Symptom:
 
 ``` text
-C
-```
-
-------------------------------------------------------------------------
-
-## 21.101 CCDAK Scenario Pattern
-
-Developer questions often emphasize:
-
-``` text
-producer
-consumer
-serialization
-schemas
-delivery semantics
-transactions
-Streams
-Connect
-application design
-```
-
-Think:
-
-``` text
-correctness
-+
-application behavior
-```
-
-------------------------------------------------------------------------
-
-## 21.102 CCAAK Scenario Pattern
-
-Administrator questions often emphasize:
-
-``` text
-brokers
-replication
-partitions
-KRaft
-security
-networking
-configuration
-observability
-operations
-disaster recovery
-```
-
-Think:
-
-``` text
-cluster state
-+
-operational safety
-```
-
-------------------------------------------------------------------------
-
-## 21.103 Mixed Scenario Pattern
-
-Some questions cross both domains.
-
-For example:
-
-``` text
-Consumer lag increases
-```
-
-Possible causes span:
-
-``` text
-consumer code
-broker performance
-network
-database
-partition distribution
-security
-```
-
-Do not assume the question belongs to only one subsystem.
-
-------------------------------------------------------------------------
-
-## 21.104 The 12 High-Value Diagnostic Questions
-
-Memorize these:
-
-1.  What changed?
-2.  What is the blast radius?
-3.  Is it one partition or many?
-4.  Is the broker healthy?
-5.  Is the network healthy?
-6.  Is metadata correct?
-7.  Is authentication successful?
-8.  Is authorization successful?
-9.  Is replication healthy?
-10. Is the client healthy?
-11. Is a downstream dependency slow?
-12. Can the system recover without intervention?
-
-------------------------------------------------------------------------
-
-## 21.105 Final 20-Second Mental Model
-
-When the exam gives you a Kafka incident:
-
-``` text
-SYMPTOM
-   ↓
-SCOPE
-   ↓
-LAYER
-   ↓
-EVIDENCE
-   ↓
-HYPOTHESIS
-   ↓
-LOWEST-RISK ACTION
-   ↓
-VERIFY
-```
-
-Do not jump directly from symptom to configuration change.
-
-------------------------------------------------------------------------
-
-## 21.106 Certification Trap Matrix
-
-  ------------------------------------------------------------------------------
-  Symptom                 Common Wrong Answer     Better Direction
-  ----------------------- ----------------------- ------------------------------
-  Bootstrap works, broker Restart client          advertised listeners
-  fails                                           
-
-  Auth succeeds, write    Fix TLS                 ACL
-  denied                                          
-
-  One partition lagging   Add consumers           key/partition skew
-
-  ISR shrinks             Increase RF             broker health
-
-  Disk fills              Delete log files        retention/storage analysis
-
-  More consumers than     Add more consumers      partition parallelism
-  partitions                                      
-
-  High heap               Increase heap           investigate GC/page cache
-
-  Low throughput          Increase threads        identify bottleneck
-
-  Duplicate processing    Kafka is broken         delivery semantics
-
-  Lag after DB slowdown   Tune Kafka              fix downstream dependency
-
-  Topic config ignored    Edit server.properties  inspect dynamic override
-
-  Broker added but load   Add more brokers        rebalance replicas
-  remains                                         
-
-  TLS external failure    Change ACL              certificate/listener/network
-
-  KRaft issue             Inspect consumer lag    inspect metadata quorum
-  ------------------------------------------------------------------------------
-
-------------------------------------------------------------------------
-
-## 21.107 Final Exam Checklist
-
-Before selecting an answer:
-
-``` text
-[ ] What component is failing?
-[ ] What evidence is provided?
-[ ] Is the failure connectivity, security, Kafka state, or application?
-[ ] Is the symptom global or localized?
-[ ] What is the least invasive diagnostic step?
-[ ] Is the proposed fix addressing the cause?
-[ ] Could the proposed fix reduce durability?
-[ ] Could it cause data loss?
-[ ] Could it increase recovery pressure?
-[ ] Is there a safer alternative?
-```
-
-------------------------------------------------------------------------
-
-## 21.108 Master Cheat Sheet
-
-## Producer
-
-``` text
-connect
-→ metadata
-→ partition
-→ send
-→ acknowledgement
+Connection timed out
 ```
 
 Investigate:
 
-``` text
-network
-metadata
-partition leader
-acks
-ISR
-broker
-buffer
-batching
-```
+- routing
+- firewall
+- security group
+- unreachable network
+- wrong IP
+- bad advertised endpoint
 
-## Consumer
+Timeout generally indicates a reachability problem before it indicates
+authorization.
 
-``` text
-connect
-→ metadata
-→ group coordination
-→ assignment
-→ fetch
-→ process
-→ commit
-```
+---
 
-Investigate:
+## 21.37 Scenario --- TLS Fails
+
+TCP works.
+
+TLS fails.
+
+Check:
 
 ``` text
-group
-assignment
-lag
-poll/processing
-broker fetch
-downstream
-offsets
+truststore
+broker certificate
+certificate chain
+SAN
+hostname
+TLS protocol
+cipher compatibility
+client certificate requirement
 ```
 
-## Broker
+If:
+
+``` properties
+ssl.client.auth=required
+```
+
+the client needs an appropriate certificate/private key.
+
+---
+
+## 21.38 Scenario --- SASL Fails
+
+TLS succeeds.
+
+SASL fails.
+
+Check:
 
 ``` text
-network
-request handling
-disk
-replication
-leadership
-metadata
+security.protocol
+sasl.mechanism
+username
+password
+JAAS
+listener-specific configuration
+broker-enabled mechanism
+SCRAM credentials
+Kerberos configuration
+OAuth token
 ```
 
-## Security
+Example mismatch:
 
 ``` text
-TCP
-→ TLS
-→ SASL
-→ Kafka protocol
-→ ACL
+Client:
+SCRAM-SHA-512
+
+Broker:
+SCRAM-SHA-256 only
 ```
 
-## Replication
+---
+
+## 21.39 Scenario --- Authorization Fails
+
+Logs show:
 
 ``` text
-leader
-replicas
-ISR
-min.insync.replicas
-acks
+Authenticated principal = User:orders-service
 ```
 
-## KRaft
+Then:
 
 ``` text
-controllers
-→ metadata quorum
-→ cluster metadata
+TopicAuthorizationException
 ```
 
-------------------------------------------------------------------------
-
-## 21.109 Senior-Level Principle
-
-The strongest answer in a Kafka certification scenario is rarely:
-
-> Change X.
-
-It is usually:
-
-> First establish whether X is actually the bottleneck or failure
-> domain, using the evidence provided.
-
-That distinction separates configuration memorization from engineering
-judgment.
-
-------------------------------------------------------------------------
-
-## 21.110 Chapter Summary
-
-The core method is:
+The chain is:
 
 ``` text
-Understand the symptom
-        ↓
-Determine scope
-        ↓
-Identify the subsystem
-        ↓
-Gather evidence
-        ↓
-Form a hypothesis
-        ↓
-Choose the safest effective action
-        ↓
-Verify recovery
+TLS       OK
+SASL      OK
+Principal OK
+ACL       FAIL
 ```
 
-For CCDAK, prioritize:
+Inspect:
+
+``` bash
+kafka-acls.sh   --bootstrap-server broker-1:9092   --list
+```
+
+Check:
+
+- exact principal
+- operation
+- resource
+- pattern type
+- host
+- group permissions
+
+---
+
+## 21.40 Scenario --- Bootstrap Works, Broker Connection Fails
+
+Client bootstraps successfully.
+
+Metadata advertises:
 
 ``` text
-producer
-consumer
-delivery semantics
-schemas
-transactions
-Streams
-Connect
-application correctness
+broker-2.private.example.com:9093
 ```
 
-For CCAAK, prioritize:
+The client is outside the private network.
+
+Diagnosis:
 
 ``` text
-cluster
-replication
-KRaft
-security
-networking
-configuration
-observability
-troubleshooting
-operations
+Bootstrap      OK
+Metadata       OK
+Advertised     WRONG FOR CLIENT NETWORK
 ```
 
-The ultimate certification skill is not remembering the most commands.
-
-It is being able to look at a Kafka symptom and immediately ask:
-
-> Which layer could produce this symptom, what evidence would
-> distinguish the possibilities, and what is the safest next action?
-
-------------------------------------------------------------------------
-
-## 21.111 Final Challenge --- Senior Certification Drill
-
-For each incident below, answer in under 60 seconds.
-
-### A
-
-``` text
-Producer connects to bootstrap but fails after metadata retrieval.
-```
-
-Identify the most likely layer and first diagnostic.
-
-### B
-
-``` text
-Consumer group lag is huge only on partition 7.
-```
-
-Identify likely causes and first diagnostic.
-
-### C
-
-``` text
-Authentication succeeds but producer receives authorization denied.
-```
-
-Identify the security layer.
-
-### D
-
-``` text
-RF=3, min.insync.replicas=2, ISR=1.
-```
-
-Identify why writes may fail.
-
-### E
-
-``` text
-Broker disk latency increases after a broker failure.
-```
-
-Identify why recovery may be responsible.
-
-### F
-
-``` text
-Topic retention was changed in server.properties but effective topic behavior did not change.
-```
-
-Identify what to inspect.
-
-### G
-
-``` text
-20 consumers, 4 partitions.
-```
-
-Identify the parallelism limit.
-
-### H
-
-``` text
-Kafka broker metrics are healthy but consumer processing latency is 10× higher.
-```
-
-Identify where to investigate.
-
-### I
-
-``` text
-TLS works internally but fails for external clients.
-```
-
-Identify likely areas.
-
-### J
-
-``` text
-AdminClient topic creation times out.
-```
-
-Identify why blindly retrying may be unsafe.
-
-------------------------------------------------------------------------
-
-## 21.112 Answers to the Final Challenge
-
-### A
-
-Likely:
-
-``` text
-metadata / advertised endpoint / network
-```
-
-First inspect:
+Fix:
 
 ``` text
 advertised.listeners
 DNS
-TCP reachability to returned broker endpoints
+routing
+firewall
+listener architecture
 ```
 
-### B
+---
 
-Likely:
+## 21.41 Scenario --- TLS Works Internally but Fails Externally
+
+Internal:
 
 ``` text
-hot partition
-key skew
-slow processing
-poison record
+broker-1.internal.example.com
 ```
 
-First inspect:
+External:
 
 ``` text
-partition assignment + application processing
+broker-1.public.example.com
 ```
 
-### C
+Certificate:
 
 ``` text
-authorization / ACL
+SAN=broker-1.internal.example.com
 ```
 
-Authentication has already succeeded.
+External hostname verification fails.
 
-### D
+Correct the certificate identity and/or advertised endpoint.
 
-Only one ISR remains while two are required. With sufficiently strong
-producer acknowledgement requirements, writes can fail because the
-durability condition cannot be satisfied.
+Do not simply disable endpoint identification.
 
-### E
+---
 
-Broker recovery can generate:
+## 21.42 Scenario --- `SASL_SSL` vs `SSL`
+
+Question:
+
+> What does SASL add to SSL?
+
+Answer:
 
 ``` text
-disk IO
-network IO
-replication work
+SSL
+    TLS transport security
+
+SASL_SSL
+    TLS transport security
+    +
+    SASL authentication
 ```
 
-which competes with normal traffic.
+Authorization is a separate step.
 
-### F
+---
 
-Inspect:
+## 21.43 Scenario --- mTLS
+
+Requirement:
+
+> Every Kafka application must present a client certificate.
+
+Use:
+
+``` properties
+ssl.client.auth=required
+```
+
+Configure:
 
 ``` text
-topic-level dynamic configuration
+client keystore
+client truststore
+broker keystore
+broker truststore
 ```
 
-and effective configuration.
+Then ensure the resulting principal is represented correctly in ACLs.
 
-### G
+---
 
-At most approximately:
+## 21.44 Scenario --- Wrong Principal
+
+Authenticated identity:
 
 ``` text
-4 active partition assignments
+User:orders-service
 ```
 
-for that topic within the group.
-
-### H
-
-Investigate:
+ACL:
 
 ``` text
-application
-downstream dependencies
-CPU
-GC
-thread pools
-database/HTTP calls
+User:orders
 ```
 
-before tuning Kafka.
-
-### I
-
-Inspect:
+Result:
 
 ``` text
-external listener
-advertised hostname
-certificate SAN
-external CA trust
-load balancer
-firewall/network path
+authentication succeeds
+authorization fails
 ```
 
-### J
+Always inspect the exact principal before modifying ACLs.
 
-The request may have succeeded while the response was lost.
+---
 
-Therefore:
+## 21.45 Scenario --- Prefix ACL Accident
+
+ACL:
 
 ``` text
-timeout
-→ inspect current state
-→ reconcile
+PREFIXED orders
 ```
 
-rather than blindly assuming failure.
-
-------------------------------------------------------------------------
-
-## 21.113 Next Chapter
-
-## Chapter 22 --- Kafka Certification Mock Exam #1: Developer Fundamentals + Producer/Consumer
-
-The next chapter switches from learning mode to exam mode.
-
-It will contain:
-
--   50 certification-style questions
--   CCDAK-oriented difficulty
--   producer questions
--   consumer questions
--   partitions
--   offsets
--   consumer groups
--   serialization
--   schemas
--   delivery semantics
--   idempotent producers
--   transactions
--   ordering
--   retries
--   error handling
--   troubleshooting
--   detailed answer explanations
--   certification traps
--   score interpretation
--   senior-level reasoning
-
-Recommended exam procedure:
+can affect:
 
 ``` text
-Round 1:
-Answer without looking at explanations.
-
-Round 2:
-Review incorrect answers.
-
-Round 3:
-Explain why each wrong option is wrong.
-
-Target:
-≥ 80% before moving to the next mock exam.
+orders
+orders-eu
+orders-us
+orders-v2
 ```
+
+If the requirement is only:
+
+``` text
+orders
+```
+
+use a literal pattern unless broader authorization is intentional.
+
+---
+
+## 21.46 Scenario --- Secured CLI
+
+The Kafka CLI is another Kafka client.
+
+Example:
+
+``` bash
+kafka-topics.sh   --bootstrap-server broker-1.example.com:9093   --command-config admin.properties   --list
+```
+
+The command configuration can contain:
+
+``` properties
+security.protocol=SASL_SSL
+sasl.mechanism=SCRAM-SHA-512
+sasl.jaas.config=...
+ssl.truststore.location=...
+ssl.truststore.password=...
+```
+
+If the application works but the CLI fails, compare their security
+configuration.
+
+---
+
+## 21.47 Scenario --- Migrating a Running Cluster
+
+Do not switch every broker and client simultaneously.
+
+Safer sequence:
+
+``` text
+Phase 1
+    Add secure listener
+
+Phase 2
+    Move clients
+
+Phase 3
+    Secure inter-broker communication
+
+Phase 4
+    Verify
+
+Phase 5
+    Remove plaintext
+```
+
+The objective is to minimize the blast radius of a configuration error.
+
+---
+
+## 21.48 Example Security Migration
+
+Initial:
+
+``` properties
+listeners=PLAINTEXT://0.0.0.0:9092
+```
+
+Transition:
+
+``` properties
+listeners=PLAINTEXT://0.0.0.0:9092,SSL://0.0.0.0:9093
+```
+
+Move clients:
+
+``` properties
+bootstrap.servers=broker-1:9093
+security.protocol=SSL
+```
+
+Then secure broker communication.
+
+Finally remove:
+
+``` text
+PLAINTEXT
+```
+
+only after all required communication paths are migrated and validated.
+
+---
+
+## 21.49 Certificate Rotation
+
+Avoid:
+
+``` text
+delete old certificate
+        |
+deploy new certificate
+```
+
+Prefer:
+
+``` text
+1. Issue new certificate
+2. Trust new CA/certificate
+3. Deploy new certificate
+4. Validate
+5. Rotate
+6. Remove old trust after migration
+```
+
+Overlap prevents avoidable outages.
+
+---
+
+## 21.50 Credential Rotation
+
+For username/password authentication:
+
+``` text
+Old credential
+      |
+Create new credential
+      |
+Deploy new credential
+      |
+Verify
+      |
+Revoke old credential
+```
+
+Never revoke the only known-good credential before the replacement has
+been deployed and validated.
+
+---
+
+## 21.51 Security Observability
+
+Monitor:
+
+### TLS
+
+- handshake failures
+- certificate expiration
+- connection failures
+- TLS-related CPU
+
+### SASL
+
+- authentication failures
+- invalid credentials
+- mechanism mismatches
+- token failures
+
+### Authorization
+
+- authorization failures
+- denied operations
+- ACL changes
+
+### Infrastructure
+
+- connection count
+- CPU
+- network
+- request latency
+
+Security should be observable and operationally testable.
+
+---
+
+## 21.52 Security and Connection Churn
+
+TLS and SASL add connection-establishment work.
+
+A high rate of short-lived connections can cause:
+
+``` text
+TLS handshakes
++
+SASL authentication
++
+CPU overhead
++
+latency
+```
+
+Kafka clients should normally maintain long-lived connections.
+
+Bad:
+
+``` text
+connect
+send one record
+disconnect
+repeat
+```
+
+Better:
+
+``` text
+persistent client
+        |
+many requests
+```
+
+---
+
+## 21.53 Production Security Architecture
+
+A production-oriented architecture can look like:
+
+``` text
+External applications
+        |
+     SASL_SSL
+        |
+   Client listener
+        |
+   Kafka brokers
+        |
+  secured internal
+   communication
+        |
+   KRaft quorum
+```
+
+Security layers:
+
+``` text
+Network segmentation
+       +
+TLS
+       +
+SASL/mTLS
+       +
+StandardAuthorizer
+       +
+ACLs
+       +
+Monitoring
+```
+
+---
+
+## 21.54 Production Hardening Checklist
+
+### Network
+
+- [ ] Kafka is not unnecessarily public
+- [ ] Firewall/security-group rules are minimal
+- [ ] DNS names are stable
+- [ ] Internal and external paths are explicit
+- [ ] Controller connectivity is protected
+
+### TLS
+
+- [ ] Trusted CA
+- [ ] Correct certificate chain
+- [ ] SAN matches advertised hostname
+- [ ] Hostname verification enabled
+- [ ] Expiration monitored
+- [ ] Private keys protected
+- [ ] mTLS enabled where required
+
+### SASL
+
+- [ ] Authentication mechanism selected deliberately
+- [ ] Credentials stored securely
+- [ ] No production secrets in Git
+- [ ] Broker/client mechanisms match
+- [ ] Listener-specific settings verified
+- [ ] Credential rotation tested
+
+### Authorization
+
+- [ ] KRaft authorizer configured
+- [ ] Least privilege
+- [ ] Topic ACLs
+- [ ] Group ACLs
+- [ ] Transactional ID permissions where required
+- [ ] Prefix ACLs reviewed
+- [ ] Super users minimized
+
+### Operations
+
+- [ ] Security migration tested
+- [ ] Certificate rotation tested
+- [ ] Credential rotation tested
+- [ ] Authentication failures monitored
+- [ ] Authorization failures monitored
+- [ ] ACL changes audited
+- [ ] Recovery runbook documented
+
+---
+
+## 21.55 Certification Master Matrix
+
+  Concept               Question
+  --------------------- ------------------------------------------------------
+  TLS                   Is traffic encrypted/protected?
+  CA                    Who signed the identity?
+  Certificate           What identity does the endpoint present?
+  Keystore              What is my identity?
+  Truststore            Who do I trust?
+  mTLS                  Does the broker authenticate the client certificate?
+  SASL                  How is the client authenticated?
+  PLAIN                 Username/password mechanism
+  SCRAM                 Salted challenge-response
+  GSSAPI                Kerberos
+  OAUTHBEARER           Token authentication
+  Principal             Which identity did Kafka establish?
+  ACL                   What may that principal do?
+  StandardAuthorizer    KRaft authorization
+  Listener              Which network/security endpoint?
+  Advertised listener   What endpoint does Kafka tell clients to use?
+  Super user            Which identity bypasses ordinary ACL restrictions?
+  Security migration    Can security be introduced incrementally?
+
+---
+
+## 21.56 Final Cheat Sheet
+
+``` text
+PLAINTEXT
+    no TLS
+    no SASL
+
+SSL
+    TLS
+    optional client certificate authentication
+
+SASL_PLAINTEXT
+    SASL authentication
+    no TLS transport encryption
+
+SASL_SSL
+    SASL authentication
+    TLS encryption
+```
+
+``` text
+Keystore
+    my private key + certificate
+
+Truststore
+    CA/certificates I trust
+```
+
+``` text
+Authentication
+    Who are you?
+
+Authorization
+    What may you do?
+```
+
+``` text
+TLS
+    transport security
+
+SASL
+    authentication
+
+ACL
+    authorization
+```
+
+``` text
+KRaft
+    StandardAuthorizer
+```
+
+``` text
+DNS
+  ↓
+TCP
+  ↓
+TLS
+  ↓
+SASL
+  ↓
+Principal
+  ↓
+Metadata
+  ↓
+ACL
+  ↓
+Kafka operation
+```
+
+---
+
+## 21.57 Senior-Level Mental Model
+
+When Kafka security breaks, ask these questions in order:
+
+``` text
+1. Where is the client connecting?
+
+2. Can DNS resolve the endpoint?
+
+3. Can TCP reach it?
+
+4. Does TLS handshake?
+
+5. Does the certificate chain validate?
+
+6. Does hostname verification succeed?
+
+7. Does SASL authenticate?
+
+8. What principal did Kafka establish?
+
+9. What broker endpoints did metadata advertise?
+
+10. Can the client reach every required broker?
+
+11. Does the principal have the required ACL?
+
+12. Is the requested Kafka operation authorized?
+```
+
+This turns Kafka security troubleshooting into layered diagnosis rather
+than trial-and-error configuration changes.
+
+---
+
+## 21.58 Key Certification Traps
+
+1.  **SASL encrypts traffic** --- false. SASL authenticates; TLS
+    provides transport encryption.
+2.  **Authentication grants topic access** --- false. Authorization is
+    separate.
+3.  **SSL and SASL_SSL are identical** --- false.
+4.  **SASL_PLAINTEXT provides TLS encryption** --- false.
+5.  **Truststore contains your private key** --- false.
+6.  **Disable hostname verification to fix TLS** --- generally the wrong
+    production solution.
+7.  **`ssl.client.auth=requested` enforces mTLS** --- false.
+8.  **KRaft uses the old ZooKeeper authorization configuration** --- not
+    for modern KRaft deployments.
+9.  **Bootstrap success proves complete Kafka connectivity** --- false.
+10. **Prefix ACLs are equivalent to literal ACLs** --- false.
+11. **A secure external listener automatically secures
+    inter-broker/controller traffic** --- false.
+12. **A successful SASL login means the application can perform every
+    operation** --- false.
+
+---
+
+## 21.59 Chapter Summary
+
+The essential ideas are:
+
+1.  Kafka security has distinct encryption, authentication and
+    authorization concerns.
+2.  TLS protects transport confidentiality and integrity and can
+    authenticate peers.
+3.  A keystore represents the local identity; a truststore represents
+    trusted certificate authorities/certificates.
+4.  Certificate SANs must align with the hostname clients actually use.
+5.  Hostname verification should normally remain enabled.
+6.  `SASL_SSL` combines SASL authentication with TLS transport security.
+7.  `SASL_PLAINTEXT` authenticates without TLS transport encryption.
+8.  PLAIN, SCRAM, GSSAPI and OAUTHBEARER are authentication mechanisms,
+    not authorization systems.
+9.  Authentication produces a Kafka principal.
+10. ACLs authorize operations for that principal.
+11. Modern KRaft deployments use `StandardAuthorizer` for Kafka's
+    built-in authorization model.
+12. Listener-specific security allows different security properties on
+    different network paths.
+13. Client, broker and controller communication are separate security
+    paths.
+14. Certificate and credential rotation should use overlap rather than
+    abrupt replacement.
+15. Least privilege is the correct production authorization model.
+16. Prefix ACLs must be used carefully.
+17. Security failures should be debugged in layers: DNS → TCP → TLS →
+    SASL → principal → metadata → ACL.
+18. Bootstrap success does not prove that every broker endpoint is
+    reachable.
+19. Security should be observable, testable and operationally
+    maintainable.
+20. Certification questions should be solved by identifying the
+    protocol, identity, resource and operation involved.
+
+---
+
+## Official Reference Areas
+
+For exact property names and version-specific behavior, use the Apache
+Kafka documentation matching the cluster version:
+
+- Kafka Security Overview
+- SSL Encryption and Authentication
+- SASL Authentication
+- Authorization and ACLs
+- KRaft StandardAuthorizer
+- Broker Configuration
+- Security Migration
+
+---
+
+## Next Chapter
+
+[Chapter 22 — Kafka Certification Scenario Drills: Developer + Administrator](kafka-certification-mastery-chapter-22.md)

@@ -112,6 +112,7 @@ And we'll repeatedly ask the certification question:
 > What actually happens inside Kafka when X fails?
 
 # Part III — Storage
+
 ## Module 3 — Kafka Storage Internals
 
 Based on the storage sections of The Definitive Guide.
@@ -154,6 +155,7 @@ And answer:
 - What happens when retention deletes a segment?
 
 # Part IV — Producers
+
 ## Module 4 — Kafka Producer Internals
 
 This is a major CCDAK area.
@@ -213,6 +215,7 @@ Deep topics:
 We'll also create Java/Kotlin producer laboratories.
 
 # Part V — Consumers
+
 ## Module 5 — Consumer Internals
 
 This will be one of the largest modules.
@@ -264,6 +267,7 @@ And the classic certification scenarios:
 - Consumer group has more consumers than partitions.
 
 # Part VI — Reliability & Delivery Semantics
+
 ## Module 6 — Kafka Delivery Guarantees
 
 We will make this extremely practical.
@@ -300,6 +304,7 @@ And importantly:
 > exactly-once processing vs exactly-once delivery vs exactly-once effects.
 
 # Part VII — Schemas
+
 ## Module 7 — Schema Management
 
 We'll cover:
@@ -341,6 +346,7 @@ Consumer
 We'll create schema-evolution exercises.
 
 # Part VIII — Kafka Connect
+
 ## Module 8 — Kafka Connect
 
 CCDAK and CCAAK both require knowledge of Connect.
@@ -388,6 +394,7 @@ Topics:
 - scaling
 
 # Part IX — Kafka Streams
+
 ## Module 9 — Kafka Streams
 
 We'll cover:
@@ -432,6 +439,7 @@ KTable
 ▼
 Output Topic
 ```
+
 # Part X — Administration
 
 This is where the curriculum shifts toward CCAAK.
@@ -467,6 +475,7 @@ And practice:
 - investigate failures
 
 # Part XI — Kafka Cluster Configuration
+
 ## Module 11 — Broker Configuration
 
 We'll build a configuration decision matrix.
@@ -523,6 +532,7 @@ Topics:
 ```
 
 # Part XIII — Security
+
 ## Module 13 — Kafka Security
 
 CCAAK has a dedicated security section worth 15% in the current blueprint.
@@ -568,6 +578,7 @@ Topics:
 - security protocols
 
 # Part XIV — Networking
+
 ## Module 14 — Kafka Networking
 
 This is critical for administrators.
@@ -615,6 +626,7 @@ and:
 > UnknownHostException
 
 # Part XV — Observability
+
 ## Module 15 — Kafka Monitoring
 
 We'll create a complete Kafka observability model:
@@ -661,6 +673,7 @@ You'll learn:
 - consumer metrics
 
 # Part XVI — Troubleshooting
+
 ## Module 16 — Production Incident Lab
 
 This will be particularly important for the administrator certification.
@@ -726,6 +739,7 @@ Disk reaches 95%
 Kafka cluster becomes unavailable
 
 # Part XVII — High Availability & Disaster Recovery
+
 ## Module 17 — HA / DR
 
 We'll cover:
@@ -748,6 +762,7 @@ We'll cover:
 The Definitive Guide contains a dedicated chapter on cross-cluster mirroring and another on security, making it a useful foundation for these subjects.
 
 # Part XVIII — Performance Engineering
+
 ## Module 18 — Kafka Performance
 
 We'll investigate performance from first principles:

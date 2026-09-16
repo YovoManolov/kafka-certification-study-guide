@@ -53,19 +53,12 @@ Application
 Kafka itself may be operating correctly while consumer lag continuously increases. Therefore, Kafka monitoring must
 cover the entire pipeline:
 
-```text
-Producer
-   |
-   v
-Kafka Broker
-   |
-   +--> Replicas
-   |
-   v
-Consumer
-   |
-   v
-Application
+```mermaid
+flowchart TD
+    P["Producer"] --> B["Kafka Broker"]
+    B --> R["Replicas"]
+    B --> C["Consumer"]
+    C --> A["Application"]
 ```
 
 ## 3. The Four Observability Signals
@@ -1003,7 +996,7 @@ Grafana
 +-- Producer dashboard
 +-- Consumer dashboard
 +-- JVM dashboard
-+-- Replication dashboard 
++-- Replication dashboard
 ```
 
 ## 37. Recommended Dashboards
@@ -2231,7 +2224,7 @@ which indicates a clear problem.
 
 When a question gives you several metrics, identify:
 
-1. The symptom 
+1. The symptom
 Example: `consumer lag`
 
 2. The correlated metric

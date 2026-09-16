@@ -412,11 +412,11 @@ The producer does not wait for broker acknowledgment.
 
 **Disadvantages**:
 * weaker delivery assurance
-  
+
 This is appropriate only when the application can tolerate potential loss.
 
 ### 19.2. acks=1
-The leader acknowledges the write after accepting it. If the leader fails before replication to followers, 
+The leader acknowledges the write after accepting it. If the leader fails before replication to followers,
 data may potentially be lost depending on the replication state and broker configuration.
 
 ### 19.3. acks=all
@@ -442,7 +442,7 @@ Leader
    |
    +--> Replica 2
 ```
-The combination protects against certain broker failures while retaining availability 
+The combination protects against certain broker failures while retaining availability
 when at least the configured number of replicas remain in sync.
 
 ## 21. min.insync.replicas
@@ -454,18 +454,18 @@ min.insync.replicas=2
 acks=all
 ```
 Kafka requires at least two in-sync replicas for the write to succeed.
-If only one replica remains in sync ``ISR = 1`` then the producer can receive an error rather than silently accepting 
+If only one replica remains in sync ``ISR = 1`` then the producer can receive an error rather than silently accepting
 a write that violates the intended durability policy.
 
 ## 22. acks=all Does Not Mean Every Replica
-``acks=all`` does not mean the producer waits for every replica in the cluster. 
+``acks=all`` does not mean the producer waits for every replica in the cluster.
 It works with the partition's ISR and min.insync.replicas semantics.
 
 ## 23. max.in.flight.requests.per.connection
 
 This controls how many unacknowledged requests can be sent on one connection.
 Higher values can improve throughput but ordering and retry behavior must be considered.
-With idempotence enabled, Kafka producer semantics place constraints on this configuration 
+With idempotence enabled, Kafka producer semantics place constraints on this configuration
 and maintain ordering guarantees within the supported limits.
 
 ## 24. Idempotent Producer
@@ -561,7 +561,7 @@ Consumer throughput depends heavily on:
 
 ### 29.1. fetch.min.bytes
 
-The consumer can request that the broker wait until at least a certain amount of data is available before responding, 
+The consumer can request that the broker wait until at least a certain amount of data is available before responding,
 subject to the relevant wait limit.
 ```properties
 fetch.min.bytes=1
@@ -598,7 +598,7 @@ This creates a throughput/latency trade-off.
 ### 29.4. max.partition.fetch.bytes
 
 Controls the maximum amount of data returned per partition in a fetch.
-This matters when ``messages are large`` or `partitions have high throughput`. It must be large enough to accommodate the 
+This matters when ``messages are large`` or `partitions have high throughput`. It must be large enough to accommodate the
 largest message under the relevant Kafka configuration constraints.
 
 ### 29.5. fetch.max.bytes
@@ -628,7 +628,7 @@ It controls how many records the consumer returns to the application per poll.
 
 This is a critical consumer setting. It limits the maximum delay between successful calls to poll() before the consumer is considered to have failed its processing responsibility.
 
-Suppose ``max.poll.interval.ms=300000`` and processing takes `400 seconds`. The consumer may be removed from the group 
+Suppose ``max.poll.interval.ms=300000`` and processing takes `400 seconds`. The consumer may be removed from the group
 and can cause a rebalance.
 
 ### 29.8. Long Consumer Processing
@@ -656,7 +656,7 @@ The consumer can be considered unresponsive. Possible consequences:
 
 ### 29.9. max.poll.records as a Processing Control
 
-If processing each record is expensive, reducing: 
+If processing each record is expensive, reducing:
 ```properties
 max.poll.records
 ```
@@ -811,7 +811,7 @@ This is particularly useful for ``tail reads`` where consumers are close to the 
 ### 30.3. JVM Heap
 
 Kafka brokers should not simply be given all available machine RAM as JVM heap. Why?
-Because Kafka benefits significantly from ``OS page cache`` 
+Because Kafka benefits significantly from ``OS page cache``
 ```text
 Machine RAM
  |
@@ -982,7 +982,7 @@ If data arrives faster than expected ``storage consumption ↑``; If retention i
 If replication factor increases ``storage consumption ↑``
 
 ## 37. Partition Count and Storage
-Suppose ``100 TB`` of retained data is distributed across `1,000 partitions`, average logical data per partition 
+Suppose ``100 TB`` of retained data is distributed across `1,000 partitions`, average logical data per partition
 ``100 TB / 1000 = 100 GB``.
 Partition distribution should also account for:
 * key skew
@@ -1064,7 +1064,7 @@ Therefore, formulas provide starting estimates, not guarantees.
 Suppose ``1 consumer = 20,000 records/sec`` and `topic = 8 partitions`, A theoretical starting point could be
 ``8 consumers/tasks``. But actual throughput depends on:
 * record size
-* processing cost 
+* processing cost
 * partition distribution
 
 ## 42. Consumer Group Parallelism
@@ -1301,7 +1301,7 @@ This demonstrates why capacity planning must consider **peak traffic**, retentio
 ## 60. Capacity Planning Formula
 A useful starting formula:
 ```text
-Storage = ingress rate × retention duration × replication factor × overhead factor 
+Storage = ingress rate × retention duration × replication factor × overhead factor
 ```
 Where ``ingress rate`` should represent the expected retained data rate. If compression is significant
 ```text
@@ -1498,7 +1498,7 @@ _Question_ **Which changes are likely helpful?**
 
 Answer: **B**
 
----------
+---
 _Question_ **What does batch.size control?**
 
 * A. Maximum Kafka partition size
@@ -1508,7 +1508,7 @@ _Question_ **What does batch.size control?**
 
 Answer: **B**
 
----------
+---
 _Question_ **What does fetch.min.bytes influence?**
 
 * A. Minimum broker disk capacity
@@ -1518,7 +1518,7 @@ _Question_ **What does fetch.min.bytes influence?**
 
 Answer: **B**
 
----------
+---
 
 A consumer processes records for 10 minutes before calling poll() again, while max.poll.interval.ms is 5 minutes.
 
@@ -1531,7 +1531,7 @@ _Question_ **What can happen?**
 
 Answer: **B**
 
-------------
+---
 
 _Question_ **What happens when a consumer group has 10 consumers but only 4 partitions?**
 
@@ -1542,7 +1542,7 @@ _Question_ **What happens when a consumer group has 10 consumers but only 4 part
 
 Answer: **B**
 
---------------
+---
 
 _Question_ **Which configuration combination is commonly used for stronger producer durability?**
 
@@ -1572,7 +1572,7 @@ min.insync.replicas=0
 
 Answer: **B**
 
--------
+---
 
 _Question_ **If replication factor is 3 and min.insync.replicas=2, what happens if ISR drops to 1 while using acks=all?**
 
@@ -1583,7 +1583,7 @@ _Question_ **If replication factor is 3 and min.insync.replicas=2, what happens 
 
 Answer: **B**
 
---------
+---
 
 _Question_ **Which component provides a large amount of Kafka's read performance?**
 
@@ -1594,7 +1594,7 @@ _Question_ **Which component provides a large amount of Kafka's read performance
 
 Answer: **A**
 
-----------
+---
 
 _Question_ **Why shouldn't all server RAM necessarily be allocated to the JVM heap?**
 
@@ -1605,7 +1605,7 @@ _Question_ **Why shouldn't all server RAM necessarily be allocated to the JVM he
 
 Answer: **B**
 
---------
+---
 
 _Question_ **A topic has one extremely hot key. Increasing partition count may not solve the problem because:**
 
@@ -1616,7 +1616,7 @@ D. Producers cannot use keys
 
 Answer: **B**
 
--------
+---
 
 _Question_ **Which metric is particularly useful for detecting follower replication problems?**
 
@@ -1627,7 +1627,7 @@ D. Topic name length
 
 Answer: **A**
 
-------
+---
 
 _Question_ **Which statement is correct?**
 

@@ -1562,7 +1562,7 @@ Question: **Does `acks=all` mean every configured replica must acknowledge?**
 
 <details>
 <summary>Answer</summary>
-**No.** 
+**No.**
 
 It works with the in-sync replica model.
 </details>

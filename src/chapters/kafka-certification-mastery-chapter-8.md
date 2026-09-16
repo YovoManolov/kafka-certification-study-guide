@@ -150,6 +150,7 @@ Important fields include:
 Example:
 
 `P0 -> Leader B1 -> Replicas B1,B2,B3 -> ISR B1,B2,B3`
+
 ## 8. Topic Metadata
 
 When troubleshooting a topic, inspect:
@@ -533,6 +534,7 @@ Frequent rebalances can cause:
 - latency
 - duplicate processing
 - unstable assignments
+
 ## 31. Rebalance Troubleshooting
 
 Investigate:
@@ -655,6 +657,7 @@ monitor
 |
 verify
 ```
+
 ## 38. Why Reassignment Is Expensive
 
 Moving replicas consumes:
@@ -896,6 +899,7 @@ Check:
 - routing
 - firewalls
 - security protocol
+
 ## 54. Security Administration Overview
 
 Kafka security involves:

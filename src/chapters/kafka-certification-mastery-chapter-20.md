@@ -1,1966 +1,1063 @@
-# Chapter 20 — Kafka Security Deep Dive: TLS, SASL, ACLs, Authentication & Authorization
+# Chapter 20 — Kafka Troubleshooting Deep Dive: Diagnosis, Metrics, Incidents & Recovery
 
-> Kafka Developer & Administrator Certification Preparation
-> Based on the security concepts covered in *Kafka: The Definitive Guide*, with certification-oriented explanations,
-> operational examples, troubleshooting scenarios, and exam traps.
+> **Certification focus:** CCAAK primary, CCDAK overlap
+> **Goal:** develop a repeatable, evidence-driven method for diagnosing Kafka incidents.
 
 ---
 
-## 19.1 Learning Objectives
+## 20.1 Learning Objectives
 
-By the end of this chapter you should be able to:
+You should be able to:
 
--   Separate encryption, authentication and authorization.
--   Explain TLS, certificates, CAs, keystores, truststores and mutual
-    TLS.
--   Configure and troubleshoot `PLAINTEXT`, `SSL`, `SASL_PLAINTEXT` and
-    `SASL_SSL`.
--   Explain SASL/PLAIN, SCRAM, GSSAPI/Kerberos and OAUTHBEARER.
--   Understand listener-specific security configuration.
--   Explain Kafka principals and principal mapping.
--   Configure and reason about Kafka ACLs.
--   Understand `StandardAuthorizer` in KRaft.
--   Identify permissions required by producers, consumers, transactions
-    and administration.
--   Secure client, inter-broker and controller communication.
--   Perform staged security migrations.
--   Troubleshoot failures from DNS/TCP through TLS, SASL and ACL
-    evaluation.
+- identify and scope Kafka incidents
+- use metrics, logs and effective configuration as evidence
+- distinguish symptoms from root causes
+- diagnose broker, storage, network and JVM pressure
+- diagnose producer latency and failures
+- diagnose consumer lag and rebalances
+- distinguish under-replicated from offline partitions
+- diagnose ISR instability and broker failures
+- troubleshoot KRaft/controller problems
+- separate authentication from authorization
+- troubleshoot Kafka Connect and Kafka Streams
+- apply safe mitigation and recovery procedures
 
-------------------------------------------------------------------------
+---
 
-## 19.2 The Three Questions of Kafka Security
+## 20.2 The Golden Troubleshooting Rule
 
-Kafka security is easiest to understand as three separate concerns:
+> **Do not start with "What configuration should I change?" Start with "What evidence tells me what is failing?"**
 
-``` text
-Encryption
-    Can someone read or modify traffic?
-
-Authentication
-    Who is connecting?
-
-Authorization
-    What may that identity do?
+```mermaid
+flowchart LR
+    A[Symptom] --> B[Scope]
+    B --> C[Metrics and logs]
+    C --> D[Effective configuration]
+    D --> E[Hypothesis]
+    E --> F[Small safe action]
+    F --> G[Verify]
+    G -->|Not fixed| E
+    G -->|Recovered| H[Document root cause]
 ```
 
-A secure Kafka deployment commonly combines:
+---
 
-``` text
-TLS
-    -> transport encryption and integrity
+## 20.3 Define the Symptom
 
-SASL / mTLS
-    -> authentication
+Replace:
 
-ACLs
-    -> authorization
+> Kafka is slow.
+
+with something measurable:
+
+- producer p99 latency increased
+- consumer lag is increasing
+- broker 2 has high disk latency
+- partitions are under-replicated
+- clients receive connection timeouts
+- consumers rebalance repeatedly
+
+A precise symptom reduces the search space.
+
+---
+
+## 20.4 Determine the Blast Radius
+
+Ask whether the failure affects:
+
+- one client
+- one consumer group
+- one topic
+- one partition
+- one broker
+- multiple brokers
+- the whole cluster
+
+```mermaid
+flowchart TD
+    A[Incident] --> B{Scope?}
+    B -->|Client| C[Client configuration or dependency]
+    B -->|Partition| D[Leader, key distribution or replica health]
+    B -->|Broker| E[CPU, memory, disk, network or process]
+    B -->|Cluster| F[Shared infrastructure, capacity or control plane]
 ```
 
-Authentication does not imply authorization.
+---
 
-A client can be:
+## 20.5 Establish a Timeline
 
-``` text
-Authenticated = YES
-Authorized    = NO
+Correlate the first abnormal signal with recent changes:
+
+- deployment
+- configuration change
+- certificate rotation
+- topic expansion
+- broker restart
+- traffic increase
+- infrastructure change
+
+Example:
+
+```text
+10:00  normal
+10:05  deployment
+10:07  producer latency increases
+10:08  ISR shrinks
+10:09  consumer lag increases
+10:15  mitigation
+10:20  recovery
 ```
 
-------------------------------------------------------------------------
+The first abnormal signal is often more useful than the loudest later symptom.
 
-## 19.3 Kafka Security Protocols
+---
 
-Kafka commonly uses four security protocol combinations:
+## 20.6 Cluster Health First
 
-  Protocol             TLS encryption   SASL authentication
-  ------------------ ---------------- ---------------------
-  `PLAINTEXT`                      No                    No
-  `SSL`                           Yes                    No
-  `SASL_PLAINTEXT`                 No                   Yes
-  `SASL_SSL`                      Yes                   Yes
+Useful commands:
 
-Certification shortcut:
-
-``` text
-SSL  = TLS
-SASL = authentication
-ACL  = authorization
+```bash
+kafka-topics.sh --bootstrap-server kafka-1:9092 --describe
 ```
 
-Therefore:
-
-``` text
-SASL_SSL
-    = SASL authentication + TLS
-
-SASL_PLAINTEXT
-    = SASL authentication without TLS transport encryption
+```bash
+kafka-consumer-groups.sh   --bootstrap-server kafka-1:9092   --describe   --group orders
 ```
 
-------------------------------------------------------------------------
-
-## 19.4 TLS Fundamentals
-
-TLS provides:
-
--   confidentiality
--   integrity
--   server authentication
--   optionally client authentication
-
-Simplified flow:
-
-``` text
-Client                         Broker
-  |                              |
-  | ClientHello                  |
-  |----------------------------->|
-  |                              |
-  | ServerHello + Certificate    |
-  |<-----------------------------|
-  |                              |
-  | Validate certificate         |
-  |                              |
-  | Establish session keys       |
-  |<============================>|
-  |                              |
-  | Encrypted Kafka traffic      |
-  |<============================>|
+```bash
+kafka-configs.sh   --bootstrap-server kafka-1:9092   --entity-type topics   --entity-name orders   --describe
 ```
 
-The certificate is meaningful only when the client can validate its
-trust chain and endpoint identity.
+Exact CLI options vary by Kafka version. Use `--help` for the installed version.
 
-------------------------------------------------------------------------
+---
 
-## 19.5 CA, Certificate, Keystore and Truststore
+## 20.7 Metrics Before Guessing
 
-A typical PKI hierarchy:
+Important metric families include:
 
-``` text
-Root CA
-   |
-Intermediate CA
-   |
-   +---- Broker certificate
-   +---- Broker certificate
-   +---- Client certificate
+- request latency
+- request queue time
+- request processing time
+- network processor idle
+- request handler idle
+- bytes in/out
+- connection counts
+- disk utilization and latency
+- replication health
+- under-replicated partitions
+- offline partitions
+- JVM heap and GC
+- controller/KRaft health
+
+Metrics establish the shape of the incident; logs provide detailed events.
+
+---
+
+## 20.8 Broker Resource Diagnosis
+
+```mermaid
+flowchart TD
+    A[Broker pressure] --> B[CPU]
+    A --> C[Memory and GC]
+    A --> D[Disk]
+    A --> E[Network]
+    B --> B1[Request processing]
+    C --> C1[Heap and pauses]
+    D --> D1[Log I/O and recovery]
+    E --> E1[Client and replication traffic]
 ```
 
-### Keystore
+Do not increase threads, heap or timeouts before identifying the constrained resource.
 
-Contains the application's own identity:
+---
 
-``` text
-Private key
-Certificate
-Certificate chain
+## 20.9 Request Handler and Network Processor Pressure
+
+Low request-handler idle time can indicate broker request-processing pressure.
+
+Low network processor idle time can indicate network-processing pressure.
+
+```mermaid
+flowchart LR
+    A[Work increases] --> B[Workers become busy]
+    B --> C[Idle time decreases]
+    C --> D[Latency may increase]
 ```
 
-Mental model:
+Next determine whether the workload is CPU-bound, I/O-bound or blocked by another dependency.
 
-``` text
-Keystore = "Who am I?"
+---
+
+## 20.10 Disk Bottleneck
+
+Kafka relies heavily on the filesystem and operating-system page cache.
+
+Symptoms can include:
+
+- request latency increases
+- replication falls behind
+- ISR shrinks
+- recovery takes longer
+- consumer fetch latency increases
+
+Check:
+
+```bash
+df -h
+df -i
 ```
 
-### Truststore
+Then inspect disk latency, throughput, IOPS, filesystem capacity and Kafka log directories.
 
-Contains trusted CA/certificate material.
+A full filesystem is an availability risk, not merely a cleanup problem.
 
-Mental model:
+---
 
-``` text
-Truststore = "Who do I trust?"
+## 20.11 JVM Heap, GC and Page Cache
+
+Increasing JVM heap is not automatically a performance improvement.
+
+Kafka needs memory for:
+
+- JVM heap
+- operating-system filesystem cache
+- other processes
+
+A very large heap can increase GC pressure and reduce memory available for page cache.
+
+```mermaid
+flowchart LR
+    A[Allocation pressure] --> B[GC activity]
+    B --> C[CPU and pause pressure]
+    C --> D[Request latency]
+    D --> E[Timeouts or rebalances]
 ```
 
-Therefore:
+Confirm the chain with JVM and host metrics before changing heap.
 
-``` text
-Client keystore
-    -> client private key + certificate, for mTLS
+---
 
-Client truststore
-    -> CA certificates used to trust brokers
+## 20.12 Producer Troubleshooting
 
-Broker keystore
-    -> broker private key + certificate
+Producer latency is a pipeline:
 
-Broker truststore
-    -> CA certificates used to trust clients
+```mermaid
+flowchart LR
+    A[Application] --> B[Serialize]
+    B --> C[Partition]
+    C --> D[Batch]
+    D --> E[Network]
+    E --> F[Broker]
+    F --> G[Replication]
+    G --> H[Acknowledgement]
 ```
 
-------------------------------------------------------------------------
+Potential causes:
 
-## 19.6 TLS Hostname Verification
+- insufficient batching
+- broker overload
+- network latency
+- replication delay
+- hot partition
+- message-size limits
+- metadata problems
+- authentication/authorization
+- application-side serialization
 
-Suppose the client connects to:
+---
 
-``` text
-broker-1.kafka.example.com
+## 20.13 Producer Failure Matrix
+
+| Symptom | First areas to investigate |
+|---|---|
+| Timeout | broker load, network, partition leadership, replication, metadata |
+| Record too large | producer, broker, replica-fetch and consumer size limits |
+| Authentication failure | security protocol, SASL mechanism, credentials |
+| Authorization failure | principal and ACLs |
+| High latency | batching, network, broker, replication, hot partitions |
+
+Do not increase retries before understanding the failure.
+
+---
+
+## 20.14 Consumer Lag Is a Symptom
+
+```mermaid
+flowchart LR
+    A[Production rate] --> B[Partition log]
+    B --> C[Consumer fetch]
+    C --> D[Application processing]
+    D --> E[Committed offset]
+    B --> F[Lag]
+    E --> F
 ```
 
-The certificate should contain that identity in its SAN:
+Possible causes:
 
-``` text
-Subject Alternative Name:
-    DNS:broker-1.kafka.example.com
+- slow application processing
+- too few consumers
+- too few partitions
+- hot partition
+- downstream database latency
+- repeated rebalances
+- network bottleneck
+- serialization/deserialization cost
+
+---
+
+## 20.15 Lag Trend Matters
+
+### Increasing
+
+The consumer is falling further behind.
+
+### High but stable
+
+There is a persistent backlog, but consumption is keeping pace with incoming traffic.
+
+### Decreasing
+
+Recovery is occurring.
+
+The trend is often more useful than one lag snapshot.
+
+---
+
+## 20.16 Consumer Rebalances
+
+Repeated rebalances can result from:
+
+- consumer crashes
+- missed heartbeats
+- excessive processing time
+- unstable network
+- group membership changes
+- long JVM pauses
+
+Do not automatically increase every timeout.
+
+First identify why members are leaving and rejoining.
+
+---
+
+## 20.17 Poll-Loop Problem
+
+A consumer that processes records for too long can stop polling frequently enough.
+
+```mermaid
+sequenceDiagram
+    participant C as Consumer
+    participant G as Group Coordinator
+    C->>G: Poll / heartbeat
+    C->>C: Long processing
+    Note over C: Polling becomes delayed
+    G-->>C: Member considered unhealthy
+    G->>G: Rebalance
+    G-->>C: New assignment
 ```
 
-The important relationship is:
+Potential remedies include:
 
-``` text
-advertised.listeners
-        |
-        v
-hostname used by client
-        |
-        v
-certificate SAN
+- reduce processing time
+- reduce records processed per cycle
+- increase application parallelism appropriately
+- move expensive work outside the poll loop
+- tune consumer settings based on measured workload
+
+---
+
+## 20.18 Consumer Group Parallelism
+
+For a topic with 12 partitions:
+
+```mermaid
+flowchart LR
+    T[12 partitions] --> G[Consumer group]
+    G --> C1[Consumer 1]
+    G --> C2[Consumer 2]
+    G --> C3[Consumer 3]
+    G --> C4[Consumer 4]
 ```
 
-All three must agree.
+Adding consumers beyond available partition parallelism does not create additional partition-level parallelism.
 
-A hostname mismatch should be fixed by correcting the certificate or
-endpoint identity, not by blindly disabling hostname verification.
+---
 
-------------------------------------------------------------------------
+## 20.19 Hot Partition
 
-## 19.7 Mutual TLS
+Symptoms:
 
-Normal TLS can authenticate the broker:
+- one partition has much more traffic
+- one consumer is overloaded
+- lag is concentrated on one partition
+- overall cluster utilization may still look acceptable
 
-``` text
-Client -> verifies Broker
+Possible causes:
+
+- skewed key distribution
+- hot business key
+- partitioning strategy
+
+Adding consumers does not split one partition across consumers.
+
+---
+
+## 20.20 Under-Replicated Partitions
+
+Under-replication means fewer replicas are currently in sync than the configured replica set.
+
+Potential causes:
+
+- broker failure
+- disk bottleneck
+- network bottleneck
+- replication overload
+- broker pause
+- insufficient capacity
+
+Under-replication is serious, but it is not the same as partition unavailability.
+
+---
+
+## 20.21 Offline Partitions
+
+An offline partition has no available leader.
+
+```mermaid
+flowchart TD
+    A[Partition] --> B{Leader available?}
+    B -->|Yes| C[Partition available]
+    B -->|No| D[Offline partition]
+    D --> E[Immediate availability incident]
 ```
 
-Mutual TLS adds:
+Prioritize restoring partition availability before optimizing secondary symptoms.
 
-``` text
-Client -> verifies Broker
-Broker -> verifies Client
+---
+
+## 20.22 ISR Shrinkage
+
+Repeated ISR shrink/expand cycles indicate instability.
+
+```mermaid
+stateDiagram-v2
+    [*] --> InSync
+    InSync --> Behind: Replica falls behind
+    Behind --> OutOfSync: Removed from ISR
+    OutOfSync --> CatchingUp: Replica recovers
+    CatchingUp --> InSync: Catches up
 ```
 
-For mandatory client certificates:
+Investigate disk, network, broker pauses and replication capacity.
 
-``` properties
-ssl.client.auth=required
+---
+
+## 20.23 Broker Failure and Recovery
+
+When a broker fails:
+
+1. identify affected partitions
+2. determine leaders
+3. inspect ISR
+4. check for offline partitions
+5. monitor recovery
+6. verify redundancy is restored
+
+```mermaid
+flowchart LR
+    A[Broker failure] --> B[Replica unavailable]
+    B --> C[ISR changes]
+    C --> D[Leader/recovery actions]
+    D --> E[Redundancy restored]
 ```
 
-Typical values:
+Do not stop at "the broker restarted." Verify the cluster state.
 
-``` text
-none
-requested
-required
+---
+
+## 20.24 Recovery Capacity
+
+Recovery consumes resources.
+
+```mermaid
+flowchart LR
+    A[Broker failure] --> B[Replica recovery]
+    B --> C[Disk traffic]
+    B --> D[Network traffic]
+    C --> E[Broker pressure]
+    D --> E
+    E --> F[Client latency]
 ```
 
-`requested` does not enforce mTLS.
+Too much recovery traffic can hurt client workloads.
 
-------------------------------------------------------------------------
+Too little recovery traffic prolongs reduced redundancy.
 
-## 19.8 TLS Failure Patterns
+---
 
-  -----------------------------------------------------------------------
-  Symptom                             Likely cause
-  ----------------------------------- -----------------------------------
-  Unknown CA                          Truststore does not trust CA
+## 20.25 Leader Imbalance
 
-  PKIX path failure                   Invalid/incomplete certificate
-                                      chain
-
-  Hostname mismatch                   SAN does not match endpoint
-
-  Certificate expired                 Certificate lifecycle problem
-
-  Handshake failure                   TLS protocol/cipher/certificate
-                                      mismatch
-
-  Client certificate required         Missing client keystore
-
-  Works only when hostname            Endpoint/certificate identity
-  verification is disabled            mismatch
-  -----------------------------------------------------------------------
-
-Useful diagnostics:
-
-``` bash
-openssl s_client   -connect broker-1.example.com:9093   -showcerts
-```
-
-``` bash
-openssl x509   -in broker.crt   -text   -noout
-```
+If one broker owns disproportionately many partition leaders, request and network load can become uneven.
 
 Inspect:
 
--   issuer
--   subject
--   SAN
--   validity
--   key usage
--   extended key usage
--   certificate chain
+- leader distribution
+- partition distribution
+- broker bytes in/out
+- request load
 
-------------------------------------------------------------------------
+Do not resize every broker before checking distribution.
 
-## 19.9 Listener-Specific Security
+---
 
-Kafka listeners can expose different security protocols.
-
-Example:
-
-``` properties
-listeners=INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9093
-
-listener.security.protocol.map=INTERNAL:SSL,EXTERNAL:SASL_SSL
-```
-
-Conceptually:
-
-``` text
-Internal applications
-        |
-       SSL
-        |
-     Brokers
-
-External applications
-        |
-    SASL_SSL
-        |
-     Brokers
-```
-
-This is a common production pattern.
-
-------------------------------------------------------------------------
-
-## 19.10 `listeners` vs `advertised.listeners`
-
-Remember:
-
-``` text
-listeners
-    = where Kafka binds/listens
-
-advertised.listeners
-    = endpoints Kafka returns to clients
-```
-
-Example:
-
-``` properties
-listeners=CLIENT://0.0.0.0:9093
-
-advertised.listeners=CLIENT://broker-1.example.com:9093
-```
-
-A broker can listen correctly while advertising an endpoint that a
-client cannot reach.
-
-------------------------------------------------------------------------
-
-## 19.11 SASL
-
-Kafka supports SASL mechanisms including:
-
-``` text
-GSSAPI
-PLAIN
-SCRAM-SHA-256
-SCRAM-SHA-512
-OAUTHBEARER
-```
-
-SASL can run over:
-
-``` text
-SASL_PLAINTEXT
-```
-
-or:
-
-``` text
-SASL_SSL
-```
-
-SASL provides authentication. TLS determines whether the transport is
-encrypted.
-
-------------------------------------------------------------------------
-
-## 19.12 SASL/PLAIN
-
-Example:
-
-``` properties
-security.protocol=SASL_SSL
-sasl.mechanism=PLAIN
-
-sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username="orders-service" password="secret";
-```
-
-Important:
-
-``` text
-PLAIN = authentication
-PLAIN != encryption
-```
-
-For production transport security:
-
-``` text
-SASL_SSL + PLAIN
-```
-
-is preferable to:
-
-``` text
-SASL_PLAINTEXT + PLAIN
-```
-
-------------------------------------------------------------------------
-
-## 19.13 SCRAM
-
-Kafka supports:
-
-``` text
-SCRAM-SHA-256
-SCRAM-SHA-512
-```
-
-Example:
-
-``` properties
-security.protocol=SASL_SSL
-sasl.mechanism=SCRAM-SHA-512
-
-sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="orders-service" password="secret";
-```
-
-SCRAM uses salted challenge-response authentication.
-
-It does not replace TLS.
-
-A common production design is:
-
-``` text
-SCRAM
-+
-TLS
-=
-SASL_SSL
-```
-
-Example credential creation:
-
-``` bash
-kafka-configs.sh   --bootstrap-server broker-1:9092   --alter   --add-config 'SCRAM-SHA-512=[password=secret]'   --entity-type users   --entity-name orders-service
-```
-
-------------------------------------------------------------------------
-
-## 19.14 Kerberos / GSSAPI
-
-GSSAPI is commonly used with Kerberos.
-
-Conceptually:
-
-``` text
-Kerberos KDC
-      |
-    ticket
-      |
-      v
-Kafka client
-      |
- SASL/GSSAPI
-      |
-      v
-Kafka broker
-```
-
-A principal can resemble:
-
-``` text
-orders-service@EXAMPLE.COM
-```
-
-Kerberos is particularly relevant in enterprise environments with an
-existing centralized identity infrastructure.
-
-------------------------------------------------------------------------
-
-## 19.15 OAUTHBEARER
-
-OAuth bearer authentication uses an access token:
-
-``` text
-Client
-  |
-  v
-Identity Provider
-  |
- token
-  |
-  v
-Kafka client
-  |
-SASL/OAUTHBEARER
-  |
-  v
-Kafka broker
-```
-
-The broker validates the token and establishes the Kafka principal.
-
-Production deployments should use an appropriate trusted OAuth/OIDC
-identity infrastructure.
-
-------------------------------------------------------------------------
-
-## 19.16 JAAS and Listener-Specific SASL Configuration
-
-Client example:
-
-``` properties
-sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username="orders-service" password="secret";
-```
-
-For brokers, listener/mechanism-specific configuration follows the
-pattern:
-
-``` properties
-listener.name.<listener>.<mechanism>.sasl.jaas.config=...
-```
-
-Do not assume a global SASL setting applies identically to every
-listener.
-
-Secrets should not be committed to Git.
-
-Prefer:
-
-``` text
-Secret manager
-      |
-      v
-Deployment system
-      |
-      v
-Kafka configuration
-```
-
-------------------------------------------------------------------------
-
-## 19.17 Kafka Principals
-
-After authentication Kafka has an identity:
-
-``` text
-Principal
-```
-
-Examples:
-
-``` text
-User:alice
-User:orders-service
-User:kafka
-```
-
-Different authentication mechanisms produce identities differently.
-
-Examples:
-
-``` text
-SCRAM username
-       |
-       v
-User:orders-service
-```
-
-or:
-
-``` text
-TLS client certificate
-       |
-       v
-Kafka principal
-```
-
-Authorization operates on the resulting principal.
-
-------------------------------------------------------------------------
-
-## 19.18 Authorization and ACLs
-
-An ACL can be viewed as:
-
-``` text
-Principal
-    +
-ALLOW/DENY
-    +
-Operation
-    +
-Resource
-    +
-Host
-```
-
-Example:
-
-``` text
-User:orders-service
-ALLOW
-WRITE
-Topic:orders
-Host:*
-```
-
-Authorization answers:
-
-``` text
-Can this principal perform this Kafka operation?
-```
-
-It does not authenticate the principal.
-
-------------------------------------------------------------------------
-
-## 19.19 Important Kafka ACL Resources
-
-Important resource types include:
-
-``` text
-Topic
-Group
-Cluster
-TransactionalId
-DelegationToken
-```
-
-A consumer commonly needs authorization involving:
-
-``` text
-Topic
-+
-Consumer Group
-```
-
-A transactional producer may require permissions involving:
-
-``` text
-Topic
-+
-TransactionalId
-+
-other protocol operations
-```
-
-Always reason from the Kafka feature being used.
-
-------------------------------------------------------------------------
-
-## 19.20 Important Kafka ACL Operations
-
-Common operations include:
-
-``` text
-READ
-WRITE
-CREATE
-DELETE
-ALTER
-DESCRIBE
-DESCRIBE_CONFIGS
-ALTER_CONFIGS
-CLUSTER_ACTION
-IDEMPOTENT_WRITE
-```
-
-Do not memorize only strings.
-
-Ask:
-
-``` text
-What Kafka operation is the client performing?
-What resource does it operate on?
-What principal is making the request?
-```
-
-------------------------------------------------------------------------
-
-## 19.21 `kafka-acls.sh`
-
-List ACLs:
-
-``` bash
-kafka-acls.sh   --bootstrap-server broker-1:9092   --list
-```
-
-Grant topic write:
-
-``` bash
-kafka-acls.sh   --bootstrap-server broker-1:9092   --add   --allow-principal User:orders-service   --operation Write   --topic orders
-```
-
-Grant topic read:
-
-``` bash
-kafka-acls.sh   --bootstrap-server broker-1:9092   --add   --allow-principal User:analytics   --operation Read   --topic orders
-```
-
-Grant group read:
-
-``` bash
-kafka-acls.sh   --bootstrap-server broker-1:9092   --add   --allow-principal User:analytics   --operation Read   --group analytics-group
-```
-
-In a secured cluster the CLI itself must authenticate and be authorized.
-
-------------------------------------------------------------------------
-
-## 19.22 ACL Pattern Types
-
-Kafka supports resource patterns including:
-
-``` text
-LITERAL
-PREFIXED
-```
-
-and matching/query patterns such as:
-
-``` text
-ANY
-MATCH
-```
-
-Literal:
-
-``` text
-orders
-```
-
-matches the exact resource.
-
-Prefixed:
-
-``` text
-orders
-```
-
-can match resources beginning with that prefix:
-
-``` text
-orders
-orders-eu
-orders-us
-orders-v2
-```
-
-### Certification trap
-
-A prefix ACL can unintentionally authorize future resources.
-
-Use prefixes deliberately.
-
-------------------------------------------------------------------------
-
-## 19.23 Allow and Deny
-
-ACLs can contain:
-
-``` text
-ALLOW
-DENY
-```
-
-Example:
-
-``` text
-ALLOW User:app READ orders
-DENY  User:app WRITE orders
-```
-
-Authorization decisions require considering matching:
-
-``` text
-Principal
-Operation
-Resource
-Pattern
-Host
-ALLOW/DENY
-```
-
-Do not infer the result from one ACL entry without considering other
-matching rules.
-
-------------------------------------------------------------------------
-
-## 19.24 StandardAuthorizer in KRaft
-
-Modern KRaft deployments use Kafka's built-in authorizer:
-
-``` properties
-authorizer.class.name=org.apache.kafka.metadata.authorizer.StandardAuthorizer
-```
-
-This is an important distinction from older ZooKeeper-era Kafka
-material.
-
-Certification rule:
-
-> First identify whether the question describes a KRaft cluster or an
-> older ZooKeeper-based cluster.
-
-Then choose the appropriate authorization configuration.
-
-------------------------------------------------------------------------
-
-## 19.25 Super Users
-
-Kafka can define super users:
-
-``` properties
-super.users=User:admin;User:kafka
-```
-
-Super users bypass ordinary ACL restrictions.
-
-Useful for:
-
--   infrastructure administration
--   broker identities
--   recovery/bootstrap operations
-
-But application identities should normally use least privilege.
-
-Bad:
-
-``` text
-every application -> super user
-```
-
-Good:
-
-``` text
-application -> minimal ACLs
-```
-
-------------------------------------------------------------------------
-
-## 19.26 Least Privilege
-
-Suppose:
-
-``` text
-orders-service
-```
-
-needs:
-
-``` text
-WRITE orders
-READ order-events
-READ orders-group
-```
-
-Do not automatically grant:
-
-``` text
-DELETE *
-ALTER *
-CLUSTER_ACTION
-```
-
-Authorization should map:
-
-``` text
-Business responsibility
-        |
-        v
-Required Kafka operations
-        |
-        v
-Minimal ACLs
-```
-
-------------------------------------------------------------------------
-
-## 19.27 Producer Authorization
-
-A producer commonly needs:
-
-``` text
-WRITE
-```
-
-on its target topic.
-
-Features such as idempotence and transactions can introduce additional
-authorization requirements.
-
-For certification questions, consider:
-
-``` text
-Producer
-  |
-  +-- topic write
-  +-- idempotence
-  +-- transactional.id
-  +-- transaction lifecycle
-```
-
-Do not assume ordinary topic WRITE is the complete permission model for
-every producer feature.
-
-------------------------------------------------------------------------
-
-## 19.28 Consumer Authorization
-
-A consumer commonly needs:
-
-``` text
-READ
-```
-
-on the topic.
-
-It also operates within a:
-
-``` text
-Consumer Group
-```
-
-Therefore authorization should account for:
-
-``` text
-Topic permissions
-+
-Group permissions
-```
-
-Authentication can succeed while group or topic authorization fails.
-
-------------------------------------------------------------------------
-
-## 19.29 Transactional Producer Authorization
-
-A transactional producer uses:
-
-``` properties
-transactional.id=orders-producer
-```
-
-Authorization can therefore involve:
-
-``` text
-Topic
-TransactionalId
-Cluster/protocol operations
-```
-
-Think about the complete lifecycle:
-
-``` text
-authenticate
-    ↓
-begin transaction
-    ↓
-write records
-    ↓
-send offsets
-    ↓
-commit transaction
-```
-
-------------------------------------------------------------------------
-
-## 19.30 Inter-Broker Security
-
-Kafka brokers communicate with one another.
-
-Client security:
-
-``` text
-Client -> Broker
-```
-
-is not enough.
-
-Also secure:
-
-``` text
-Broker -> Broker
-```
-
-Example:
-
-``` properties
-security.inter.broker.protocol=SASL_SSL
-sasl.mechanism.inter.broker.protocol=SCRAM-SHA-512
-```
-
-This gives:
-
-``` text
-TLS encryption
-+
-SCRAM authentication
-```
-
-A secure external listener does not automatically secure inter-broker
-traffic.
-
-------------------------------------------------------------------------
-
-## 19.31 KRaft Controller Security
-
-KRaft introduces controller quorum communication.
-
-A production deployment must account for:
-
-``` text
-Client listeners
-Inter-broker communication
-Controller listeners
-Administrative access
-```
-
-Think of these as distinct communication paths.
-
-``` text
-Client plane
-     |
-     v
-Kafka brokers
-     |
-     +---- inter-broker plane
-     |
-     +---- controller/control plane
-```
-
-Securing one plane does not automatically secure the others.
-
-------------------------------------------------------------------------
-
-## 19.32 Security Is Not Network Isolation
-
-TLS does not replace:
-
-``` text
-firewalls
-security groups
-private subnets
-routing
-VPN/private connectivity
-network segmentation
-```
-
-Use defense in depth:
-
-``` text
-Network isolation
-      +
-TLS
-      +
-Authentication
-      +
-Authorization
-      +
-Observability
-```
-
-------------------------------------------------------------------------
-
-## 19.33 Security Troubleshooting Sequence
-
-Use this order:
-
-``` text
-1. DNS
-2. TCP
-3. TLS handshake
-4. Certificate validation
-5. Hostname verification
-6. SASL authentication
-7. Kafka principal
-8. Metadata
-9. Advertised broker endpoints
-10. ACL authorization
-11. Application behavior
-```
-
-This prevents mixing failure domains.
-
-------------------------------------------------------------------------
-
-## 19.34 TCP vs TLS vs SASL vs ACL
-
-``` text
-TCP fails
-    -> listener/network/routing/firewall
-
-TCP works, TLS fails
-    -> certificate/TLS/endpoint
-
-TLS works, SASL fails
-    -> credentials/mechanism/JAAS
-
-SASL works, authorization fails
-    -> principal/ACL
-
-ACL works, application still fails
-    -> Kafka protocol/application
-```
-
-This is one of the most useful operational decision trees in the
-chapter.
-
-------------------------------------------------------------------------
-
-## 19.35 Scenario --- Connection Refused
-
-Symptom:
-
-``` text
-Connection refused
-```
-
-Start with:
-
-``` text
-listener
-port
-broker process
-container port
-network path
-```
-
-Typical causes:
-
--   nothing listening
--   wrong port
--   wrong listener
--   broker unavailable
--   container port not published
-
-Do not begin with ACLs.
-
-------------------------------------------------------------------------
-
-## 19.36 Scenario --- Timeout
-
-Symptom:
-
-``` text
-Connection timed out
-```
+## 20.26 KRaft / Controller Troubleshooting
 
 Investigate:
 
--   routing
--   firewall
--   security group
--   unreachable network
--   wrong IP
--   bad advertised endpoint
+- controller quorum health
+- controller/broker connectivity
+- controller logs
+- metadata propagation
+- node roles
+- CPU
+- disk
+- network
 
-Timeout generally indicates a reachability problem before it indicates
-authorization.
+A metadata/control-plane problem can manifest as client metadata failures.
 
-------------------------------------------------------------------------
+---
 
-## 19.37 Scenario --- TLS Fails
+## 20.27 Authentication vs Authorization
 
-TCP works.
+Use the layered sequence:
 
-TLS fails.
-
-Check:
-
-``` text
-truststore
-broker certificate
-certificate chain
-SAN
-hostname
-TLS protocol
-cipher compatibility
-client certificate requirement
+```mermaid
+flowchart TD
+    A[DNS] --> B[TCP]
+    B --> C[TLS]
+    C --> D[SASL authentication]
+    D --> E[Kafka protocol and metadata]
+    E --> F[ACL authorization]
 ```
 
-If:
+If SASL fails, do not begin with ACLs.
 
-``` properties
-ssl.client.auth=required
+If authentication succeeds and the operation is denied, investigate authorization.
+
+---
+
+## 20.28 Retention Seems Late
+
+Retention is segment-oriented and asynchronous.
+
+Investigate:
+
+- `retention.ms`
+- `retention.bytes`
+- `segment.ms`
+- `segment.bytes`
+- cleanup policy
+- actual segment state
+
+Do not assume every record is deleted at the exact instant its age threshold is reached.
+
+---
+
+## 20.29 Log Compaction
+
+Compaction is asynchronous.
+
+A compacted topic may temporarily contain multiple records for the same key.
+
+Investigate:
+
+- `cleanup.policy`
+- cleaner activity
+- compaction backlog
+- tombstones
+- segment state
+- disk pressure
+
+---
+
+## 20.30 Configuration Troubleshooting
+
+Kafka settings exist at different scopes:
+
+- broker
+- topic
+- producer
+- consumer
+- listener
+- dynamic broker configuration
+- environment/container configuration
+
+When a value looks wrong, ask:
+
+> **Which component owns this setting, and what is the effective value?**
+
+Do not assume the file you edited is the effective configuration.
+
+---
+
+## 20.31 Useful Investigation Commands
+
+### Topic
+
+```bash
+kafka-topics.sh --bootstrap-server kafka-1:9092 --describe --topic orders
 ```
 
-the client needs an appropriate certificate/private key.
+### Consumer group
 
-------------------------------------------------------------------------
-
-## 19.38 Scenario --- SASL Fails
-
-TLS succeeds.
-
-SASL fails.
-
-Check:
-
-``` text
-security.protocol
-sasl.mechanism
-username
-password
-JAAS
-listener-specific configuration
-broker-enabled mechanism
-SCRAM credentials
-Kerberos configuration
-OAuth token
+```bash
+kafka-consumer-groups.sh   --bootstrap-server kafka-1:9092   --describe   --group orders
 ```
 
-Example mismatch:
+### Topic configuration
 
-``` text
-Client:
-SCRAM-SHA-512
-
-Broker:
-SCRAM-SHA-256 only
+```bash
+kafka-configs.sh   --bootstrap-server kafka-1:9092   --entity-type topics   --entity-name orders   --describe
 ```
 
-------------------------------------------------------------------------
+### Broker configuration
 
-## 19.39 Scenario --- Authorization Fails
-
-Logs show:
-
-``` text
-Authenticated principal = User:orders-service
+```bash
+kafka-configs.sh   --bootstrap-server kafka-1:9092   --entity-type brokers   --entity-default   --describe
 ```
 
-Then:
+Use `--help` for the exact syntax supported by the installed Kafka version.
 
-``` text
-TopicAuthorizationException
-```
+---
 
-The chain is:
+## 20.32 Logs and Evidence
 
-``` text
-TLS       OK
-SASL      OK
-Principal OK
-ACL       FAIL
-```
+Correlate:
 
-Inspect:
+- timestamp
+- broker
+- thread
+- exception
+- partition
+- client
+- request/correlation information where available
 
-``` bash
-kafka-acls.sh   --bootstrap-server broker-1:9092   --list
-```
+One isolated exception is different from the same exception across every broker.
 
-Check:
+---
 
--   exact principal
--   operation
--   resource
--   pattern type
--   host
--   group permissions
-
-------------------------------------------------------------------------
-
-## 19.40 Scenario --- Bootstrap Works, Broker Connection Fails
-
-Client bootstraps successfully.
-
-Metadata advertises:
-
-``` text
-broker-2.private.example.com:9093
-```
-
-The client is outside the private network.
-
-Diagnosis:
-
-``` text
-Bootstrap      OK
-Metadata       OK
-Advertised     WRONG FOR CLIENT NETWORK
-```
-
-Fix:
-
-``` text
-advertised.listeners
-DNS
-routing
-firewall
-listener architecture
-```
-
-------------------------------------------------------------------------
-
-## 19.41 Scenario --- TLS Works Internally but Fails Externally
-
-Internal:
-
-``` text
-broker-1.internal.example.com
-```
-
-External:
-
-``` text
-broker-1.public.example.com
-```
-
-Certificate:
-
-``` text
-SAN=broker-1.internal.example.com
-```
-
-External hostname verification fails.
-
-Correct the certificate identity and/or advertised endpoint.
-
-Do not simply disable endpoint identification.
-
-------------------------------------------------------------------------
-
-## 19.42 Scenario --- `SASL_SSL` vs `SSL`
-
-Question:
-
-> What does SASL add to SSL?
-
-Answer:
-
-``` text
-SSL
-    TLS transport security
-
-SASL_SSL
-    TLS transport security
-    +
-    SASL authentication
-```
-
-Authorization is a separate step.
-
-------------------------------------------------------------------------
-
-## 19.43 Scenario --- mTLS
-
-Requirement:
-
-> Every Kafka application must present a client certificate.
-
-Use:
-
-``` properties
-ssl.client.auth=required
-```
-
-Configure:
-
-``` text
-client keystore
-client truststore
-broker keystore
-broker truststore
-```
-
-Then ensure the resulting principal is represented correctly in ACLs.
-
-------------------------------------------------------------------------
-
-## 19.44 Scenario --- Wrong Principal
-
-Authenticated identity:
-
-``` text
-User:orders-service
-```
-
-ACL:
-
-``` text
-User:orders
-```
-
-Result:
-
-``` text
-authentication succeeds
-authorization fails
-```
-
-Always inspect the exact principal before modifying ACLs.
-
-------------------------------------------------------------------------
-
-## 19.45 Scenario --- Prefix ACL Accident
-
-ACL:
-
-``` text
-PREFIXED orders
-```
-
-can affect:
-
-``` text
-orders
-orders-eu
-orders-us
-orders-v2
-```
-
-If the requirement is only:
-
-``` text
-orders
-```
-
-use a literal pattern unless broader authorization is intentional.
-
-------------------------------------------------------------------------
-
-## 19.46 Scenario --- Secured CLI
-
-The Kafka CLI is another Kafka client.
-
-Example:
-
-``` bash
-kafka-topics.sh   --bootstrap-server broker-1.example.com:9093   --command-config admin.properties   --list
-```
-
-The command configuration can contain:
-
-``` properties
-security.protocol=SASL_SSL
-sasl.mechanism=SCRAM-SHA-512
-sasl.jaas.config=...
-ssl.truststore.location=...
-ssl.truststore.password=...
-```
-
-If the application works but the CLI fails, compare their security
-configuration.
-
-------------------------------------------------------------------------
-
-## 19.47 Scenario --- Migrating a Running Cluster
-
-Do not switch every broker and client simultaneously.
-
-Safer sequence:
-
-``` text
-Phase 1
-    Add secure listener
-
-Phase 2
-    Move clients
-
-Phase 3
-    Secure inter-broker communication
-
-Phase 4
-    Verify
-
-Phase 5
-    Remove plaintext
-```
-
-The objective is to minimize the blast radius of a configuration error.
-
-------------------------------------------------------------------------
-
-## 19.48 Example Security Migration
-
-Initial:
-
-``` properties
-listeners=PLAINTEXT://0.0.0.0:9092
-```
-
-Transition:
-
-``` properties
-listeners=PLAINTEXT://0.0.0.0:9092,SSL://0.0.0.0:9093
-```
-
-Move clients:
-
-``` properties
-bootstrap.servers=broker-1:9093
-security.protocol=SSL
-```
-
-Then secure broker communication.
-
-Finally remove:
-
-``` text
-PLAINTEXT
-```
-
-only after all required communication paths are migrated and validated.
-
-------------------------------------------------------------------------
-
-## 19.49 Certificate Rotation
-
-Avoid:
-
-``` text
-delete old certificate
-        |
-deploy new certificate
-```
+## 20.33 Evidence Hierarchy
 
 Prefer:
 
-``` text
-1. Issue new certificate
-2. Trust new CA/certificate
-3. Deploy new certificate
-4. Validate
-5. Rotate
-6. Remove old trust after migration
+1. direct metric
+2. broker/client log
+3. effective configuration
+4. reproducible network test
+5. recent change
+6. assumption
+
+Example:
+
+> "The disk seems fine."
+
+is weaker than:
+
+```text
+disk latency: 35 ms -> 240 ms
 ```
 
-Overlap prevents avoidable outages.
+---
 
-------------------------------------------------------------------------
+## 20.34 Change One Thing at a Time
 
-## 19.50 Credential Rotation
+Avoid changing several unrelated variables simultaneously.
 
-For username/password authentication:
-
-``` text
-Old credential
-      |
-Create new credential
-      |
-Deploy new credential
-      |
-Verify
-      |
-Revoke old credential
+```mermaid
+flowchart LR
+    A[Hypothesis] --> B[Small controlled change]
+    B --> C[Observe metrics]
+    C --> D{Improved?}
+    D -->|Yes| E[Keep and document]
+    D -->|No| F[Reject hypothesis]
+    F --> A
 ```
 
-Never revoke the only known-good credential before the replacement has
-been deployed and validated.
+---
 
-------------------------------------------------------------------------
+## 20.35 Safe Incident Response
 
-## 19.51 Security Observability
+During an incident:
 
-Monitor:
+1. protect availability
+2. protect durability
+3. reduce blast radius
+4. collect evidence
+5. apply the smallest safe mitigation
+6. monitor recovery
+7. perform root-cause analysis after stabilization
 
-### TLS
+Do not manually delete Kafka log files as emergency cleanup.
 
--   handshake failures
--   certificate expiration
--   connection failures
--   TLS-related CPU
+---
 
-### SASL
+## 20.36 Kafka Connect Troubleshooting
 
--   authentication failures
--   invalid credentials
--   mechanism mismatches
--   token failures
+Separate the layers:
 
-### Authorization
-
--   authorization failures
--   denied operations
--   ACL changes
-
-### Infrastructure
-
--   connection count
--   CPU
--   network
--   request latency
-
-Security should be observable and operationally testable.
-
-------------------------------------------------------------------------
-
-## 19.52 Security and Connection Churn
-
-TLS and SASL add connection-establishment work.
-
-A high rate of short-lived connections can cause:
-
-``` text
-TLS handshakes
-+
-SASL authentication
-+
-CPU overhead
-+
-latency
+```mermaid
+flowchart LR
+    A[Connect worker] --> B[Connector]
+    B --> C[Task]
+    C --> D[External system]
 ```
 
-Kafka clients should normally maintain long-lived connections.
+A healthy worker does not imply a healthy connector or task.
 
-Bad:
+Check worker state, connector state, task state, task logs, serialization/schema, external-system health, authentication and network.
 
-``` text
-connect
-send one record
-disconnect
-repeat
+---
+
+## 20.37 Kafka Streams Troubleshooting
+
+Separate:
+
+- application process
+- input topics
+- stream task
+- state store
+- changelog
+- repartition topic
+- output topic
+
+A healthy JVM process does not prove that every Streams task is healthy.
+
+---
+
+## 20.38 Scenario — Producer Latency
+
+Evidence:
+
+- CPU normal
+- network normal
+- disk latency high
+- ISR shrinking
+
+Likely diagnosis:
+
+> Storage pressure is affecting broker/replication performance.
+
+Do not begin by increasing producer retries.
+
+---
+
+## 20.39 Scenario — One Partition Has Lag
+
+Evidence:
+
+- other partitions healthy
+- one partition has much higher traffic
+- assigned consumer is saturated
+
+Likely diagnosis:
+
+> Hot partition / key skew.
+
+Investigate partitioning rather than simply adding consumers.
+
+---
+
+## 20.40 Scenario — Rebalances After Deployment
+
+Evidence:
+
+- processing time increased after deployment
+- broker metrics remain healthy
+- consumers stop polling in time
+
+Likely diagnosis:
+
+> Consumer application processing/poll-loop regression.
+
+---
+
+## 20.41 Scenario — One Broker Has High CPU
+
+Evidence:
+
+- one broker has disproportionate leader count
+- other brokers are normal
+
+First investigate:
+
+> leader/partition imbalance.
+
+---
+
+## 20.42 Scenario — Authentication Failure
+
+Evidence:
+
+```text
+TCP = OK
+TLS = OK
+SASL = FAIL
 ```
 
-Better:
+Diagnosis:
 
-``` text
-persistent client
-        |
-many requests
+> Authentication layer.
+
+Check the SASL mechanism, credentials and listener-specific configuration.
+
+---
+
+## 20.43 Scenario — Authorization Failure
+
+Evidence:
+
+```text
+TCP = OK
+TLS = OK
+SASL = OK
+operation = DENIED
 ```
 
-------------------------------------------------------------------------
+Diagnosis:
 
-## 19.53 Production Security Architecture
+> Authorization/ACL layer.
 
-A production-oriented architecture can look like:
+---
 
-``` text
-External applications
-        |
-     SASL_SSL
-        |
-   Client listener
-        |
-   Kafka brokers
-        |
-  secured internal
-   communication
-        |
-   KRaft quorum
+## 20.44 Scenario — Bootstrap Works, Metadata Broker Fails
+
+Likely areas:
+
+- `advertised.listeners`
+- DNS
+- routing
+- firewall/security groups
+- broker port
+- internal/external listener design
+
+See Chapter 19 for the networking diagnostic model.
+
+---
+
+## 20.45 Scenario — Disk Nearly Full
+
+Ask:
+
+1. Which broker?
+2. Which log directory?
+3. Which topics consume the space?
+4. What are retention settings?
+5. Is compaction involved?
+6. Are segments rolling?
+7. Is recovery generating additional traffic?
+8. Is sufficient headroom available?
+
+Do not blindly delete Kafka log files.
+
+---
+
+## 20.46 Scenario — High GC and Latency
+
+Confirm the relationship with JVM metrics and logs:
+
+```mermaid
+flowchart LR
+    A[Allocation pressure] --> B[GC activity]
+    B --> C[CPU/pause pressure]
+    C --> D[Request latency]
+    D --> E[Client timeouts]
 ```
 
-Security layers:
+Do not change heap merely because latency increased.
 
-``` text
-Network segmentation
-       +
-TLS
-       +
-SASL/mTLS
-       +
-StandardAuthorizer
-       +
-ACLs
-       +
-Monitoring
+---
+
+## 20.47 Scenario — Network Saturation
+
+If network utilization is high:
+
+- identify client traffic
+- identify replication traffic
+- identify cross-AZ/region traffic
+- inspect connection counts
+- inspect record size
+- inspect broker distribution
+
+Determine which traffic class is consuming bandwidth.
+
+---
+
+## 20.48 Certification Trap Matrix
+
+| Trap | Correct reasoning |
+|---|---|
+| Lag means Kafka is broken | Lag is a symptom; diagnose the consumer path |
+| Under-replicated means unavailable | Offline partitions represent leader unavailability |
+| Add consumers to every lag problem | Parallelism is partition-bound |
+| Give Kafka more heap | Diagnose heap, GC and page-cache behavior |
+| Increase retries | Identify the underlying failure first |
+| Increase timeouts | Identify why requests are slow |
+| Delete log files when disk is full | Use controlled Kafka retention/cleanup procedures |
+| Authentication failure means ACL failure | Authentication precedes authorization |
+
+---
+
+## 20.49 The 20-Second Diagnostic Model
+
+```mermaid
+flowchart TD
+    A[WHAT? Exact symptom] --> B[WHERE? Scope]
+    B --> C[WHEN? Timeline]
+    C --> D[EVIDENCE? Metrics + logs]
+    D --> E[CAUSE? Network / broker / storage / app]
+    E --> F[ACTION? Smallest safe mitigation]
+    F --> G[VERIFY? Did evidence improve?]
 ```
 
-------------------------------------------------------------------------
+---
 
-## 19.54 Production Hardening Checklist
+## 20.50 CCAAK Troubleshooting Mental Model
 
-### Network
+Classify the problem first:
 
--   [ ] Kafka is not unnecessarily public
--   [ ] Firewall/security-group rules are minimal
--   [ ] DNS names are stable
--   [ ] Internal and external paths are explicit
--   [ ] Controller connectivity is protected
-
-### TLS
-
--   [ ] Trusted CA
--   [ ] Correct certificate chain
--   [ ] SAN matches advertised hostname
--   [ ] Hostname verification enabled
--   [ ] Expiration monitored
--   [ ] Private keys protected
--   [ ] mTLS enabled where required
-
-### SASL
-
--   [ ] Authentication mechanism selected deliberately
--   [ ] Credentials stored securely
--   [ ] No production secrets in Git
--   [ ] Broker/client mechanisms match
--   [ ] Listener-specific settings verified
--   [ ] Credential rotation tested
-
-### Authorization
-
--   [ ] KRaft authorizer configured
--   [ ] Least privilege
--   [ ] Topic ACLs
--   [ ] Group ACLs
--   [ ] Transactional ID permissions where required
--   [ ] Prefix ACLs reviewed
--   [ ] Super users minimized
-
-### Operations
-
--   [ ] Security migration tested
--   [ ] Certificate rotation tested
--   [ ] Credential rotation tested
--   [ ] Authentication failures monitored
--   [ ] Authorization failures monitored
--   [ ] ACL changes audited
--   [ ] Recovery runbook documented
-
-------------------------------------------------------------------------
-
-## 19.55 Certification Master Matrix
-
-  Concept               Question
-  --------------------- ------------------------------------------------------
-  TLS                   Is traffic encrypted/protected?
-  CA                    Who signed the identity?
-  Certificate           What identity does the endpoint present?
-  Keystore              What is my identity?
-  Truststore            Who do I trust?
-  mTLS                  Does the broker authenticate the client certificate?
-  SASL                  How is the client authenticated?
-  PLAIN                 Username/password mechanism
-  SCRAM                 Salted challenge-response
-  GSSAPI                Kerberos
-  OAUTHBEARER           Token authentication
-  Principal             Which identity did Kafka establish?
-  ACL                   What may that principal do?
-  StandardAuthorizer    KRaft authorization
-  Listener              Which network/security endpoint?
-  Advertised listener   What endpoint does Kafka tell clients to use?
-  Super user            Which identity bypasses ordinary ACL restrictions?
-  Security migration    Can security be introduced incrementally?
-
-------------------------------------------------------------------------
-
-## 19.56 Final Cheat Sheet
-
-``` text
-PLAINTEXT
-    no TLS
-    no SASL
-
-SSL
-    TLS
-    optional client certificate authentication
-
-SASL_PLAINTEXT
-    SASL authentication
-    no TLS transport encryption
-
-SASL_SSL
-    SASL authentication
-    TLS encryption
+```text
+NETWORK
+SECURITY
+BROKER
+STORAGE
+REPLICATION
+PARTITIONING
+PRODUCER
+CONSUMER
+CONTROLLER
+CONNECT
+STREAMS
+CAPACITY
+CONFIGURATION
 ```
 
-``` text
-Keystore
-    my private key + certificate
+Then narrow from symptom to evidence.
 
-Truststore
-    CA/certificates I trust
+---
+
+## 20.51 Senior Troubleshooting Checklist
+
+Before changing anything:
+
+- [ ] define the symptom
+- [ ] determine scope
+- [ ] establish timeline
+- [ ] inspect cluster health
+- [ ] inspect metrics
+- [ ] inspect logs
+- [ ] inspect effective configuration
+- [ ] test network if relevant
+- [ ] check security if relevant
+- [ ] check dependencies
+- [ ] form a hypothesis
+- [ ] choose the smallest safe action
+- [ ] verify recovery
+- [ ] document root cause
+
+---
+
+## 20.52 Final Cheat Sheet
+
+```mermaid
+flowchart LR
+    A[Connectivity] --> A1[DNS] --> A2[TCP] --> A3[TLS] --> A4[SASL] --> A5[Metadata] --> A6[ACL]
+    B[Broker] --> B1[CPU]
+    B --> B2[Memory / GC]
+    B --> B3[Disk]
+    B --> B4[Network]
+    B --> B5[Requests]
+    C[Replication] --> C1[Leader]
+    C --> C2[ISR]
+    C --> C3[Under-replicated]
+    C --> C4[Recovery]
+    C --> C5[Offline]
+    D[Consumer] --> D1[Assignment]
+    D --> D2[Poll]
+    D --> D3[Processing]
+    D --> D4[Lag]
+    D --> D5[Rebalance]
 ```
 
-``` text
-Authentication
-    Who are you?
+---
 
-Authorization
-    What may you do?
+## 20.53 Chapter Summary
+
+Senior Kafka troubleshooting is a reasoning discipline.
+
+The strongest certification answers:
+
+1. identify the exact symptom
+2. establish scope
+3. establish the timeline
+4. collect direct evidence
+5. separate layers
+6. form a hypothesis
+7. make the smallest safe change
+8. verify the result
+
+For CCAAK, pay particular attention to:
+
+- under-replicated vs offline partitions
+- ISR behavior
+- broker resource bottlenecks
+- consumer lag and rebalances
+- networking layers
+- authentication vs authorization
+- KRaft/controller health
+- effective configuration
+- recovery capacity
+- metrics-driven diagnosis
+
+---
+
+## 20.54 Cross-References
+
+- **Chapter 13:** Monitoring, Metrics & Troubleshooting
+- **Chapter 18:** Production Configuration, Tuning & Capacity
+- **Chapter 19:** Networking, Listeners, Protocols & Connectivity
+- **Chapter 21:** Security
+- **Chapter 22:** Certification Scenario Drills
+
+
+## 20.77 Mermaid — Incident Diagnosis Loop
+
+```mermaid
+flowchart LR
+    A[Symptom] --> B[Define scope]
+    B --> C[Build timeline]
+    C --> D[Inspect metrics]
+    D --> E[Inspect logs]
+    E --> F[Check effective configuration]
+    F --> G[Form hypothesis]
+    G --> H[Smallest safe mitigation]
+    H --> I[Verify metrics and behavior]
+    I --> J{Recovered?}
+    J -- Yes --> K[Document root cause]
+    J -- No --> G
 ```
 
-``` text
-TLS
-    transport security
+## 20.78 Mermaid — Consumer Lag Diagnosis
 
-SASL
-    authentication
-
-ACL
-    authorization
+```mermaid
+flowchart TD
+    A[Consumer lag increases] --> B{Lag concentrated?}
+    B -- One partition --> C[Hot partition / key skew / slow assigned consumer]
+    B -- Many partitions --> D{Consumers processing slowly?}
+    D -- Yes --> E[Application / downstream dependency]
+    D -- No --> F{Rebalances occurring?}
+    F -- Yes --> G[Poll loop / heartbeat / membership / network]
+    F -- No --> H{Broker fetch path healthy?}
+    H -- No --> I[Broker disk / network / request pressure]
+    H -- Yes --> J[Check consumer capacity and partition parallelism]
 ```
-
-``` text
-KRaft
-    StandardAuthorizer
-```
-
-``` text
-DNS
-  ↓
-TCP
-  ↓
-TLS
-  ↓
-SASL
-  ↓
-Principal
-  ↓
-Metadata
-  ↓
-ACL
-  ↓
-Kafka operation
-```
-
-------------------------------------------------------------------------
-
-## 19.57 Senior-Level Mental Model
-
-When Kafka security breaks, ask these questions in order:
-
-``` text
-1. Where is the client connecting?
-
-2. Can DNS resolve the endpoint?
-
-3. Can TCP reach it?
-
-4. Does TLS handshake?
-
-5. Does the certificate chain validate?
-
-6. Does hostname verification succeed?
-
-7. Does SASL authenticate?
-
-8. What principal did Kafka establish?
-
-9. What broker endpoints did metadata advertise?
-
-10. Can the client reach every required broker?
-
-11. Does the principal have the required ACL?
-
-12. Is the requested Kafka operation authorized?
-```
-
-This turns Kafka security troubleshooting into layered diagnosis rather
-than trial-and-error configuration changes.
-
-------------------------------------------------------------------------
-
-## 19.58 Key Certification Traps
-
-1.  **SASL encrypts traffic** --- false. SASL authenticates; TLS
-    provides transport encryption.
-2.  **Authentication grants topic access** --- false. Authorization is
-    separate.
-3.  **SSL and SASL_SSL are identical** --- false.
-4.  **SASL_PLAINTEXT provides TLS encryption** --- false.
-5.  **Truststore contains your private key** --- false.
-6.  **Disable hostname verification to fix TLS** --- generally the wrong
-    production solution.
-7.  **`ssl.client.auth=requested` enforces mTLS** --- false.
-8.  **KRaft uses the old ZooKeeper authorization configuration** --- not
-    for modern KRaft deployments.
-9.  **Bootstrap success proves complete Kafka connectivity** --- false.
-10. **Prefix ACLs are equivalent to literal ACLs** --- false.
-11. **A secure external listener automatically secures
-    inter-broker/controller traffic** --- false.
-12. **A successful SASL login means the application can perform every
-    operation** --- false.
-
-------------------------------------------------------------------------
-
-## 19.59 Chapter Summary
-
-The essential ideas are:
-
-1.  Kafka security has distinct encryption, authentication and
-    authorization concerns.
-2.  TLS protects transport confidentiality and integrity and can
-    authenticate peers.
-3.  A keystore represents the local identity; a truststore represents
-    trusted certificate authorities/certificates.
-4.  Certificate SANs must align with the hostname clients actually use.
-5.  Hostname verification should normally remain enabled.
-6.  `SASL_SSL` combines SASL authentication with TLS transport security.
-7.  `SASL_PLAINTEXT` authenticates without TLS transport encryption.
-8.  PLAIN, SCRAM, GSSAPI and OAUTHBEARER are authentication mechanisms,
-    not authorization systems.
-9.  Authentication produces a Kafka principal.
-10. ACLs authorize operations for that principal.
-11. Modern KRaft deployments use `StandardAuthorizer` for Kafka's
-    built-in authorization model.
-12. Listener-specific security allows different security properties on
-    different network paths.
-13. Client, broker and controller communication are separate security
-    paths.
-14. Certificate and credential rotation should use overlap rather than
-    abrupt replacement.
-15. Least privilege is the correct production authorization model.
-16. Prefix ACLs must be used carefully.
-17. Security failures should be debugged in layers: DNS → TCP → TLS →
-    SASL → principal → metadata → ACL.
-18. Bootstrap success does not prove that every broker endpoint is
-    reachable.
-19. Security should be observable, testable and operationally
-    maintainable.
-20. Certification questions should be solved by identifying the
-    protocol, identity, resource and operation involved.
-
-------------------------------------------------------------------------
-
-## Official Reference Areas
-
-For exact property names and version-specific behavior, use the Apache
-Kafka documentation matching the cluster version:
-
--   Kafka Security Overview
--   SSL Encryption and Authentication
--   SASL Authentication
--   Authorization and ACLs
--   KRaft StandardAuthorizer
--   Broker Configuration
--   Security Migration
-
-------------------------------------------------------------------------
-
-# Next Chapter
-
-## Chapter 20 --- Kafka CLI, AdminClient & Certification Command Mastery
-
-The next chapter will turn the previous architecture concepts into
-command-level CCDAK/CCAAK skills:
-
--   `kafka-topics.sh`
--   `kafka-configs.sh`
--   `kafka-acls.sh`
--   `kafka-consumer-groups.sh`
--   `kafka-console-producer.sh`
--   `kafka-console-consumer.sh`
--   `kafka-storage.sh`
--   `kafka-reassign-partitions.sh`
--   `kafka-metadata-quorum.sh`
--   AdminClient APIs
--   security-aware CLI commands
--   cluster inspection
--   partition reassignment
--   configuration inspection
--   consumer lag analysis
--   ACL inspection
--   KRaft administration
--   troubleshooting command sequences
--   CCDAK/CCAAK command traps
--   hands-on certification scenarios

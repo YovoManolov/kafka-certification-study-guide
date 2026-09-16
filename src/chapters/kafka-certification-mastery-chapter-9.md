@@ -116,11 +116,11 @@ TLS protects network traffic.
 
 Kafka can use TLS for:
 
-* Client → Broker 
-* Broker → Broker 
-* Broker → Controller 
-* Client → Schema Registry 
-* Client → Connect 
+* Client → Broker
+* Broker → Broker
+* Broker → Controller
+* Client → Schema Registry
+* Client → Connect
 * Client → other Kafka ecosystem components
 
 Conceptually:
@@ -185,7 +185,7 @@ In one-way TLS:
 ```text
 Client -----------------> Broker TLS
 
-Broker presents certificate. 
+Broker presents certificate.
 Client validates broker.
 ```
 
@@ -233,7 +233,6 @@ The exact mechanisms available depend on Kafka version and deployment configurat
 PLAIN uses username/password credentials.
 
 Conceptually:
-
 
 
 ```text
@@ -354,7 +353,7 @@ Meaning:
 The key point:
 
 ```text
-SSL = TLS encryption 
+SSL = TLS encryption
 SASL = authentication mechanism
 ```
 
@@ -524,10 +523,10 @@ Conceptually:
 Example:
 
 ```text
-Principal = User:alice 
-Resource = Topic:orders 
-Operation = READ 
-Permission = ALLOW 
+Principal = User:alice
+Resource = Topic:orders
+Operation = READ
+Permission = ALLOW
 Host = *
 ```
 
@@ -546,9 +545,9 @@ Important resources include:
 Examples:
 
 ```text
-Topic:orders 
-Group:order-service 
-TransactionalId:payments 
+Topic:orders
+Group:order-service
+TransactionalId:payments
 Cluster:kafka-cluster
 ```
 
@@ -598,7 +597,7 @@ A very common troubleshooting mistake is granting topic access but forgetting gr
 The result can be:
 
 ```text
-Topic authorization: OK 
+Topic authorization: OK
 Group authorization: DENIED
 ```
 
@@ -622,8 +621,8 @@ A principal represents the authenticated identity.
 Examples:
 
 ```text
-User:alice 
-User:order-service 
+User:alice
+User:order-service
 User:admin
 ```
 
@@ -641,8 +640,8 @@ Kafka authorization evaluates permissions against this identity.
 Suppose:
 
 ```text
-User:alice 
-ALLOW READ 
+User:alice
+ALLOW READ
 Topic:orders
 ```
 
@@ -811,8 +810,8 @@ Network segmentation reduces the attack surface.
 Example symptoms:
 
 ```text
-Authentication failed 
-SASL authentication failed 
+Authentication failed
+SASL authentication failed
 SSL handshake failed
 ```
 
@@ -832,8 +831,8 @@ Investigate:
 Example:
 
 ```text
-TopicAuthorizationException 
-GroupAuthorizationException 
+TopicAuthorizationException
+GroupAuthorizationException
 ClusterAuthorizationException
 ```
 
@@ -853,8 +852,8 @@ Check:
 Typical causes:
 
 ```text
-SSLHandshakeException 
-PKIX path building failed 
+SSLHandshakeException
+PKIX path building failed
 certificate_unknown
 ```
 
@@ -885,7 +884,7 @@ When a secure Kafka client fails, troubleshoot in layers.
     1. DNS
         |
     2. text
-        |  
+        |
     3. TCP connectivity
         |
     4. TLS handshake**
@@ -922,8 +921,8 @@ Check:
 Check:
 
 ```text
-SASL mechanism 
-credentials 
+SASL mechanism
+credentials
 JAAS configuration
 ```
 
@@ -932,8 +931,8 @@ JAAS configuration
 Check:
 
 ```text
-User:producer 
-WRITE Topic:orders 
+User:producer
+WRITE Topic:orders
 ```
 
 - Step 6: Does the Kafka API operation succeed? Only now investigate producer/application-level behavior.
@@ -945,11 +944,11 @@ Security troubleshooting requires logs.
 Useful categories include:
 
 ```text
-Authentication failures 
-Authorization failures 
-SSL/TLS errors 
-Connection failures 
-Principal information 
+Authentication failures
+Authorization failures
+SSL/TLS errors
+Connection failures
+Principal information
 ACL evaluation
 ```
 
@@ -962,17 +961,17 @@ Kafka applications should receive only the permissions they need.
 Bad:
 
 ```text
-User:order-service 
-ALLOW ALL 
+User:order-service
+ALLOW ALL
 ALL RESOURCES
 ```
 
 Better:
 
 ```text
-User:order-service 
-WRITE Topic:orders 
-READ Topic:payments 
+User:order-service
+WRITE Topic:orders
+READ Topic:payments
 READ Group:order-service
 ```
 
@@ -991,8 +990,8 @@ all-services -> kafka-user
 Better:
 
 ```text
-order-service -> User:order-service 
-payment-service -> User:payment-service 
+order-service -> User:order-service
+payment-service -> User:payment-service
 billing-service -> User:billing-service
 ```
 
@@ -1007,7 +1006,7 @@ For multiple teams or applications:
         |
         +--> User:team-a
         +--> topics: team-a.*
-    
+
       Team B
         |
         +--> User:team-b
@@ -1031,7 +1030,7 @@ This is critical.
 means:
 
 ```text
-Authentication: Yes 
+Authentication: Yes
 Encryption: No
 ```
 
@@ -1042,7 +1041,7 @@ Whereas:
 means:
 
 ```text
-Authentication: Yes 
+Authentication: Yes
 Encryption: Yes
 ```
 
@@ -1052,7 +1051,7 @@ Encryption: Yes
     -> encryption
     -> certificate-based authentication can also be used
 
-    SASL 
+    SASL
     -> authentication framework
 
 They can be combined.
@@ -1285,7 +1284,7 @@ failures monitored Authorization failures monitored Certificate rotation procedu
         -> encryption
         -> certificate-based authentication possible
 
-    SASL 
+    SASL
         -> authentication
 
     SASL_SSL
@@ -1294,46 +1293,46 @@ failures monitored Authorization failures monitored Certificate rotation procedu
     SASL_PLAINTEXT
         -> SASL authentication without TLS encryption
 
-    KeyStore 
+    KeyStore
         -> identity/private key/certificate
 
-    TrustStore 
+    TrustStore
         -> trusted certificates / CAs
 
-    Authentication 
+    Authentication
         -> Who are you?
 
-    Authorization 
+    Authorization
         -> What can you do?
 
-    Principal 
+    Principal
         -> authenticated identity
 
-    ACL 
+    ACL
         -> authorization rule
 
-    Producer 
+    Producer
         -> usually WRITE topic
 
-    Consumer 
-        -> READ topic 
+    Consumer
+        -> READ topic
         -> consumer-group permissions
 
-    Listeners 
+    Listeners
         -> broker endpoints
 
-    Advertised listeners 
+    Advertised listeners
         -> addresses returned to clients
 
-    Inter-broker security 
+    Inter-broker security
         -> protects broker-to-broker traffic
 
-    Troubleshooting 
-        -> DNS 
-        -> TCP 
-        -> TLS 
-        -> Authentication 
-        -> Authorization 
+    Troubleshooting
+        -> DNS
+        -> TCP
+        -> TLS
+        -> Authentication
+        -> Authorization
         -> Kafka operation
 
 ## 53. Key Takeaways

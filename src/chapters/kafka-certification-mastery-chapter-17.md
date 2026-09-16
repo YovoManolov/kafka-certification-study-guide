@@ -23,7 +23,7 @@ By the end of this chapter, you should be able to:
 - Interpret command output rather than merely memorizing syntax.
 - Recognize common CCDAK/CCAAK certification traps.
 
-------------------------------------------------------------------------
+---
 
 ## 2. The Kafka Administration Mindset
 
@@ -32,32 +32,32 @@ Kafka administration is about managing several layers:
 ``` mermaid
 flowchart LR
     Cluster["Kafka Cluster"]
-    
+
     Cluster --> Controllers["Controllers<br/>(KRaft Metadata Quorum)"]
     Cluster --> Brokers["Brokers"]
     Cluster --> Topics["Topics"]
     Cluster --> ConsumerGroups["Consumer Groups"]
-    
+
     Brokers --> BrokerConfig["Broker Configuration"]
     Brokers --> Listeners["Listeners"]
     Brokers --> Storage["Storage"]
     Brokers --> Replication["Replication"]
-    
+
     Topics --> Partitions["Partitions"]
     Topics --> Replicas["Replicas"]
     Topics --> ISR["ISR"]
     Topics --> TopicConfig["Topic Configuration"]
-    
+
     ConsumerGroups --> Members["Members"]
     ConsumerGroups --> Assignments["Assignments"]
     ConsumerGroups --> Offsets["Offsets"]
     ConsumerGroups --> Lag["Lag"]
-    
+
     classDef cluster fill:#FF4757,color:#FFF,stroke:#C0392B,stroke-width:3px,font-weight:bold
     classDef mainNode fill:#2ED593,color:#000,stroke:#1A8A4A,stroke-width:2px,font-weight:bold
     classDef subNode fill:#FFA502,color:#000,stroke:#D68910,stroke-width:2px,font-weight:bold
     classDef leafNode fill:#3742FA,color:#FFF,stroke:#1E2A8A,stroke-width:2px,font-weight:bold
-    
+
     class Cluster cluster
     class Controllers,Brokers,Topics,ConsumerGroups mainNode
     class BrokerConfig,Listeners,Storage,Replication,Partitions,Replicas,ISR,TopicConfig,Members,Assignments,Offsets,Lag leafNode
@@ -68,11 +68,11 @@ The key certification skill is:
 > **Identify the Kafka object → identify the required operation → choose
 > the correct CLI/API → understand the consequence.**
 
-------------------------------------------------------------------------
+---
 
 ## 3. Core Kafka CLI Toolkit
 
-  -----------------------------------------------------------------------
+---
 CLI Primary purpose
   ----------------------------------- -----------------------------------
 `kafka-topics`                      Topic and partition administration
@@ -99,7 +99,7 @@ offset administration
 `kafka-dump-log`                    Low-level log inspection
 
 `kafka-features`                    Feature-level administration
------------------------------------------------------------------------
+---
 
 Always validate release-specific syntax with:
 
@@ -107,7 +107,7 @@ Always validate release-specific syntax with:
 bin/kafka-topics.sh --help
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 4. `kafka-topics`
 
@@ -147,7 +147,7 @@ Partitions          = 12
 Replication factor = 3
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 5. Partition Count vs Replication Factor
 
@@ -183,7 +183,7 @@ Replication factor → number of replicas per partition
 
 Replication factor does not directly provide consumer parallelism.
 
-------------------------------------------------------------------------
+---
 
 ## 6. Increasing Partitions
 
@@ -217,7 +217,7 @@ If a question asks how to reduce a topic from 20 partitions to 10, do
 not search for a `--partitions 10` solution. Kafka does not provide a
 normal partition-shrink operation.
 
-------------------------------------------------------------------------
+---
 
 ## 7. Partition Expansion and Key Ordering
 
@@ -247,7 +247,7 @@ Therefore:
 > Increasing partitions can affect assumptions about key-based ordering
 > and partition affinity.
 
-------------------------------------------------------------------------
+---
 
 ## 8. Describing Topics
 
@@ -271,7 +271,7 @@ Partition  Leader  Replicas  ISR
 2          3       3,2,1     3,2,1
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 9. Leader, Replicas and ISR
 
@@ -304,7 +304,7 @@ The key relationship is:
 ISR ⊆ Replicas
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 10. Under-Replicated Partitions
 
@@ -333,7 +333,7 @@ Typical causes:
 The correct response is normally investigation and recovery, not
 immediately changing application offsets.
 
-------------------------------------------------------------------------
+---
 
 ## 11. `kafka-configs`
 
@@ -352,7 +352,7 @@ bin/kafka-configs.sh   \
 
 This creates/changes a topic-level override.
 
-------------------------------------------------------------------------
+---
 
 ## 12. Broker Defaults vs Topic Overrides
 
@@ -377,7 +377,7 @@ The effective setting for `orders` is one day.
 
 This distinction is critical when troubleshooting unexpected behavior.
 
-------------------------------------------------------------------------
+---
 
 ## 13. Inspecting Topic Configuration
 
@@ -399,7 +399,7 @@ Explicit override
  Effective value
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 14. Removing a Topic Override
 
@@ -426,7 +426,7 @@ Topic inherits default
 This is different from explicitly setting the topic to the current
 default value.
 
-------------------------------------------------------------------------
+---
 
 ## 15. Static vs Dynamic Configuration
 
@@ -453,7 +453,7 @@ Do not assume:
 
 That is **false**.
 
-------------------------------------------------------------------------
+---
 
 ## 16. `kafka-consumer-groups`
 
@@ -471,7 +471,7 @@ orders-service orders   0          1200            1250            50
 orders-service orders   1          1500            1500            0
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 17. Understanding Consumer Lag
 
@@ -504,7 +504,7 @@ Investigate:
 - downstream dependencies
 - rebalances
 
-------------------------------------------------------------------------
+---
 
 ## 18. Consumer Group Parallelism
 
@@ -537,7 +537,7 @@ For one consumer group:
 Active partition-level consumers ≤ partition count
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 19. Resetting Consumer Group Offsets
 
@@ -573,15 +573,15 @@ It can cause ``reprocessing or data skipping``
 
 Always understand the desired recovery semantics before executing it.
 
-------------------------------------------------------------------------
+---
 
 ## 20. `kafka-console-producer`
 
 Useful for smoke tests:
 
 ``` bash
-bin/kafka-console-producer.sh \  
-  --bootstrap-server localhost:9092 \  
+bin/kafka-console-producer.sh \
+  --bootstrap-server localhost:9092 \
   --topic orders
 ```
 
@@ -589,9 +589,9 @@ For key/value testing:
 
 ``` bash
 bin/kafka-console-producer.sh   \
-  --bootstrap-server localhost:9092 \  
+  --bootstrap-server localhost:9092 \
   --topic orders   \
-  --property parse.key=true \   
+  --property parse.key=true \
   --property key.separator=:
 ```
 
@@ -611,33 +611,33 @@ Use it for:
 
 It is not a replacement for a production producer.
 
-------------------------------------------------------------------------
+---
 
 ## 21 `kafka-console-consumer`
 
 Basic consumption:
 
 ``` bash
-bin/kafka-console-consumer.sh   
-  --bootstrap-server localhost:9092   
+bin/kafka-console-consumer.sh
+  --bootstrap-server localhost:9092
   --topic orders
 ```
 
 From the beginning:
 
 ``` bash
-bin/kafka-console-consumer.sh   
-  --bootstrap-server localhost:9092   
-  --topic orders   
+bin/kafka-console-consumer.sh
+  --bootstrap-server localhost:9092
+  --topic orders
   --from-beginning
 ```
 
 With a group:
 
 ``` bash
-bin/kafka-console-consumer.sh   
-  --bootstrap-server localhost:9092   
-  --topic orders   
+bin/kafka-console-consumer.sh
+  --bootstrap-server localhost:9092
+  --topic orders
   --group debug-orders
 ```
 
@@ -649,7 +649,7 @@ bin/kafka-console-consumer.sh
 
 For an existing consumer group, its committed position matters.
 
-------------------------------------------------------------------------
+---
 
 ## 22 `kafka-acls`
 
@@ -658,11 +658,11 @@ Authorization administration uses `kafka-acls`.
 Example:
 
 ``` bash
-bin/kafka-acls.sh   
-  --bootstrap-server localhost:9092   
-  --add   
-  --allow-principal User:alice   
-  --operation Read   
+bin/kafka-acls.sh
+  --bootstrap-server localhost:9092
+  --add
+  --allow-principal User:alice
+  --operation Read
   --topic orders
 ```
 
@@ -674,7 +674,7 @@ as:
 - clusters
 - transactional IDs
 
-------------------------------------------------------------------------
+---
 
 ## 23 Authentication vs Authorization
 
@@ -715,7 +715,7 @@ A client can authenticate successfully and still receive:
 TOPIC_AUTHORIZATION_FAILED
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 24 `kafka-reassign-partitions`
 
@@ -737,7 +737,7 @@ partition → replica broker set
 
 It is different from increasing the partition count.
 
-------------------------------------------------------------------------
+---
 
 ## 25 Partition Expansion vs Replica Reassignment
 
@@ -752,7 +752,7 @@ Need to change authorization ACL operation
 
 The certification skill is recognizing the Kafka object being changed.
 
-------------------------------------------------------------------------
+---
 
 ## 26 Broker Decommissioning
 
@@ -779,7 +779,7 @@ The principle is:
 
 > **Move responsibility before removing capacity.**
 
-------------------------------------------------------------------------
+---
 
 ## 27 KRaft Administration
 
@@ -793,18 +793,18 @@ flowchart TB
         direction LR
         C1["Controller 1"] --- C2["Controller 2"] --- C3["Controller 3"]
     end
-    
+
     Controllers -->|"Metadata sync<br/>(Raft consensus)"| Brokers
-    
+
     subgraph Brokers["Kafka Brokers"]
         direction LR
         B1["Broker 1"] --- B2["Broker 2"] --- B3["Broker 3"]
     end
-    
+
     classDef controller fill:#4A90D9,color:#fff,stroke:#2C5F8A,stroke-width:2px
     classDef broker fill:#2ECC71,color:#fff,stroke:#1A8A4A,stroke-width:2px
     classDef cluster fill:#F39C12,color:#fff,stroke:#B8770E,stroke-width:2px,stroke-dasharray:5 5
-    
+
     class C1,C2,C3 controller
     class B1,B2,B3 broker
     class Controllers,Brokers cluster
@@ -812,7 +812,7 @@ flowchart TB
 
 The controller quorum manages Kafka metadata.
 
-------------------------------------------------------------------------
+---
 
 ## 28 `kafka-metadata-quorum`
 
@@ -834,7 +834,7 @@ Depending on Kafka version, output can expose information related to:
 
 This is an important CCAAK administration area.
 
-------------------------------------------------------------------------
+---
 
 ## 29 Controller Quorum vs Broker Cluster
 
@@ -866,7 +866,7 @@ dedicated brokers
 
 For larger production environments, role separation can be useful.
 
-------------------------------------------------------------------------
+---
 
 ## 30 `kafka-storage`
 
@@ -895,7 +895,7 @@ before formatting.
 
 Formatting the wrong storage directory can destroy expected Kafka state.
 
-------------------------------------------------------------------------
+---
 
 ## 31 `kafka-dump-log`
 
@@ -911,7 +911,7 @@ It can help investigate:
 It is an advanced troubleshooting tool rather than a routine
 administration command.
 
-------------------------------------------------------------------------
+---
 
 ## 32 AdminClient
 
@@ -938,7 +938,7 @@ Typical use cases:
 - operational workflows
 - custom control planes
 
-------------------------------------------------------------------------
+---
 
 ## 33 Creating an AdminClient
 
@@ -959,7 +959,7 @@ try (Admin admin = Admin.create(props)) {
 
 The AdminClient communicates using Kafka's administrative protocol.
 
-------------------------------------------------------------------------
+---
 
 ## 34 Creating a Topic with AdminClient
 
@@ -989,7 +989,7 @@ Kafka controller
 Topic metadata
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 35 Describing Topics with AdminClient
 
@@ -1012,7 +1012,7 @@ You can inspect:
 
 This is useful for operational tooling.
 
-------------------------------------------------------------------------
+---
 
 ## 36 AdminClient and Configuration
 
@@ -1042,7 +1042,7 @@ incrementalAlterConfigs()
 Kafka configuration
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 37 AdminClient and Consumer Groups
 
@@ -1065,7 +1065,7 @@ Kafka Operations Dashboard
   Topics / Groups / Brokers
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 38 CLI vs AdminClient
 
@@ -1107,7 +1107,7 @@ Automated provisioning
     → AdminClient / infrastructure automation
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 39 Certification Command Decision Matrix
 
@@ -1129,7 +1129,7 @@ Inspect/initialize KRaft storage   `kafka-storage`
 Low-level log inspection           `kafka-dump-log`
 Programmatic administration        `AdminClient`
 
-------------------------------------------------------------------------
+---
 
 ## 40 Important Relationships to Memorize
 
@@ -1175,7 +1175,7 @@ topic configuration
 broker default
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 41 Certification Scenario Drills
 
@@ -1201,7 +1201,7 @@ capacity, broker/network health, and downstream dependencies.
 
 Do not immediately reset offsets.
 
-------------------------------------------------------------------------
+---
 
 ## Scenario 2 --- Under-Replicated Partition
 
@@ -1217,7 +1217,7 @@ Broker 3 is assigned but not currently in ISR.
 Investigate broker 3, disk/network health, replication lag, and resource
 saturation.
 
-------------------------------------------------------------------------
+---
 
 ## Scenario 3 --- Need More Parallelism
 
@@ -1230,7 +1230,7 @@ Increase the partition count.
 
 Changing replication factor does not solve this problem.
 
-------------------------------------------------------------------------
+---
 
 ## Scenario 4 --- Remove a Broker
 
@@ -1241,7 +1241,7 @@ Broker 3 must be permanently removed.
 Move its replicas through an appropriate reassignment process, verify
 the cluster, then shut down the broker.
 
-------------------------------------------------------------------------
+---
 
 ## Scenario 5 --- Unexpected Retention
 
@@ -1261,7 +1261,7 @@ payments = 1 day
 
 Inspect topic-level configuration overrides.
 
-------------------------------------------------------------------------
+---
 
 ## Scenario 6 --- Authentication Works, Produce Fails
 
@@ -1275,7 +1275,7 @@ TOPIC_AUTHORIZATION_FAILED
 
 Investigate authorization/ACLs for the client identity and target topic.
 
-------------------------------------------------------------------------
+---
 
 ## Scenario 7 --- KRaft Metadata Problem
 
@@ -1287,7 +1287,7 @@ Investigate the KRaft controller quorum and metadata state.
 
 Healthy brokers do not automatically imply a healthy metadata quorum.
 
-------------------------------------------------------------------------
+---
 
 ## Scenario 8 --- Existing Consumer Group
 
@@ -1306,7 +1306,7 @@ Inspect the group's committed offsets and understand the command's
 offset-reset semantics. Do not assume `--from-beginning` unconditionally
 overrides an existing group's position.
 
-------------------------------------------------------------------------
+---
 
 ## 42 Practical Lab --- Three-Broker KRaft Cluster
 
@@ -1376,7 +1376,7 @@ kafka-configs.sh   --bootstrap-server localhost:9092   --entity-type topics   --
 kafka-configs.sh   --bootstrap-server localhost:9092   --entity-type topics   --entity-name orders   --describe
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 43 Failure Injection Lab
 
@@ -1409,7 +1409,7 @@ cluster convergence
 
 The objective is to connect the CLI output with actual cluster behavior.
 
-------------------------------------------------------------------------
+---
 
 ## 44 Consumer Lag Lab
 
@@ -1447,7 +1447,7 @@ The objective is to demonstrate:
 partition count limits active parallelism within a group
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 45 Configuration Override Lab
 
@@ -1469,7 +1469,7 @@ Then remove the topic override.
 
 Verify that the topic returns to inherited/default behavior.
 
-------------------------------------------------------------------------
+---
 
 ## 46 Replica Reassignment Lab
 
@@ -1495,7 +1495,7 @@ Cluster health
 Do not stop at executing the command. Be able to explain what changed
 and why.
 
-------------------------------------------------------------------------
+---
 
 ## 47. AdminClient Lab
 
@@ -1528,7 +1528,7 @@ KafkaAdminLab
 The goal is to become comfortable moving between CLI administration and
 programmatic administration.
 
-------------------------------------------------------------------------
+---
 
 ## 48. Certification Master Checklist
 
@@ -1593,7 +1593,7 @@ without documentation.
 - How can it inspect groups?
 - How can it inspect configurations?
 
-------------------------------------------------------------------------
+---
 
 ## 49. Final Certification Cheat Sheet
 
@@ -1648,7 +1648,7 @@ EXPECTED EFFECT
 POSSIBLE SIDE EFFECT
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 50. Chapter Summary
 
@@ -1698,5 +1698,4 @@ Expected effect
 Side effects
 ```
 
-**Next chapter:** Chapter 17 --- Kafka Production Configuration, Tuning
-& Configuration Reference
+**Next chapter:** Chapter 18 — Kafka Production Configuration, Tuning & Configuration Reference

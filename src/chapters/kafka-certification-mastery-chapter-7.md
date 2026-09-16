@@ -78,6 +78,7 @@
 - [Five Answers You Absolutely Must Know](#five-answers-you-absolutely-must-know)
 
 ---
+
 ## Certification Objectives
 
 By the end of this chapter, you should be able to:

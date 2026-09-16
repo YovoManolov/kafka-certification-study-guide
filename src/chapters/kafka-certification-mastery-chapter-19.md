@@ -26,6 +26,16 @@ By the end of this chapter, you should be able to:
 
 ---
 
+
+```mermaid
+flowchart TD
+    A["Kafka client"] --> B["Bootstrap endpoint"]
+    B --> C["Metadata"]
+    C --> D["Advertised broker endpoint"]
+    D --> E["Actual broker connection"]
+    E --> F["Kafka operation"]
+```
+
 ## 19.2 The Kafka Networking Mental Model
 
 The most important networking concept in Kafka is:
@@ -1938,49 +1948,49 @@ same cluster + longer network cable
 
 ## 19.71 Certification Traps
 
-1. **`listeners` is the address clients use.**  
+1. **`listeners` is the address clients use.**
    False. It describes broker bind/listen endpoints.
 
-2. **`advertised.listeners` can use `0.0.0.0`.**  
+2. **`advertised.listeners` can use `0.0.0.0`.**
    False. It must advertise a client-reachable endpoint.
 
-3. **Bootstrap servers are all brokers.**  
+3. **Bootstrap servers are all brokers.**
    False. They are initial discovery endpoints.
 
-4. **If bootstrap succeeds, networking is correct.**  
+4. **If bootstrap succeeds, networking is correct.**
    False.
 
-5. **SASL means encryption.**  
+5. **SASL means encryption.**
    False. SASL is primarily authentication.
 
-6. **SSL always means user authentication.**  
+6. **SSL always means user authentication.**
    Not necessarily. TLS server authentication is different from Kafka principal authentication/authorization design.
 
-7. **SASL_PLAINTEXT encrypts credentials.**  
+7. **SASL_PLAINTEXT encrypts credentials.**
    False.
 
-8. **SASL_SSL provides only authentication.**  
+8. **SASL_SSL provides only authentication.**
    False. It combines SASL authentication with TLS.
 
-9. **Authentication grants topic permissions.**  
+9. **Authentication grants topic permissions.**
    False.
 
-10. **A load balancer alone solves Kafka external connectivity.**  
+10. **A load balancer alone solves Kafka external connectivity.**
     False.
 
-11. **A DNS record proving resolution proves connectivity.**  
+11. **A DNS record proving resolution proves connectivity.**
     False.
 
-12. **A successful TCP test proves Kafka protocol configuration.**  
+12. **A successful TCP test proves Kafka protocol configuration.**
     False.
 
-13. **Correct port means correct Kafka security protocol.**  
+13. **Correct port means correct Kafka security protocol.**
     False.
 
-14. **Docker `localhost` means the host machine.**  
+14. **Docker `localhost` means the host machine.**
     False inside a normal container network namespace.
 
-15. **More consumers fix a network problem.**  
+15. **More consumers fix a network problem.**
     False.
 
 ---
@@ -2312,24 +2322,29 @@ Official documentation confirms that Kafka supports authentication using SSL or 
 
 ## Next Chapter
 
-# Chapter 19 — Kafka Security Deep Dive: TLS, SASL, ACLs, Authentication & Authorization
+[Chapter 20 — Kafka Troubleshooting Deep Dive: Diagnosis, Metrics, Incidents & Recovery](kafka-certification-mastery-chapter-20.md)
 
-Topics:
 
-- TLS certificates and PKI
-- truststores and keystores
-- mutual TLS
-- SASL mechanisms
-- SCRAM
-- Kerberos
-- OAuth/OAUTHBEARER
-- Kafka principals
-- ACLs
-- StandardAuthorizer
-- super users
-- listener-specific security
-- inter-broker security
-- KRaft security
-- production hardening
-- security troubleshooting
-- CCDAK/CCAAK security scenario drills
+## 19.54 Mermaid — Kafka Connectivity Diagnostic Flow
+
+```mermaid
+flowchart TD
+    A[Kafka client] --> B{DNS resolves?}
+    B -- No --> B1[Fix DNS / hostname] 
+    B -- Yes --> C{TCP connection works?}
+    C -- No --> C1[Check route / firewall / security group / listener]
+    C -- Yes --> D{TLS required?}
+    D -- No --> F{SASL required?}
+    D -- Yes --> E{TLS handshake succeeds?}
+    E -- No --> E1[Check CA / SAN / certificate / protocol]
+    E -- Yes --> F{SASL required?}
+    F -- Yes --> G{Authentication succeeds?}
+    G -- No --> G1[Check mechanism / credentials / listener config]
+    G -- Yes --> H[Request metadata]
+    F -- No --> H
+    H --> I{Advertised broker reachable?}
+    I -- No --> I1[Fix advertised.listeners / network topology]
+    I -- Yes --> J{Authorized?}
+    J -- No --> J1[Check principal / ACL]
+    J -- Yes --> K[Kafka operation]
+```

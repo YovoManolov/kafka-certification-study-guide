@@ -1,2 +1,5 @@
-book
-.idea
+book/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp

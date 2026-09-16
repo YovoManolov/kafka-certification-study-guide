@@ -363,7 +363,7 @@ If another producer starts with the same identity:
         |
         v
 transactional.id = X
-        
+
     Producer B
         |
         v
@@ -1630,13 +1630,13 @@ Memorize this:
                 |
                 v
      Producer retry protection
-            
+
             Transactions
                 |
                 +--> atomic writes
                 +--> offset commits
                 +--> transactional visibility
-            
+
            read_committed
                  |
                  v
@@ -1698,7 +1698,7 @@ It can see records from transactions that have not committed, including records 
 
 <details>
 <summary>Answer</summary>
-It provides a stable transactional identity that enables Kafka to manage producer 
+It provides a stable transactional identity that enables Kafka to manage producer
 incarnations and fence older producers.
 </details>
 
@@ -1708,7 +1708,7 @@ incarnations and fence older producers.
 
 <details>
 <summary>Answer</summary>
-An old producer instance that continues operating after a newer producer has taken 
+An old producer instance that continues operating after a newer producer has taken
 over the same transactional identity.
 </details>
 
@@ -1808,7 +1808,7 @@ Atomic coordination of processing results, Kafka output and consumed offsets wit
 
 <details>
 <summary>Answer</summary>
-They can increase 
+They can increase
 
 * latency
 * resource usage
@@ -1823,7 +1823,7 @@ They can increase
 
 <details>
 <summary>Answer</summary>
-The Kafka broker-side component responsible for managing transaction coordination/state 
+The Kafka broker-side component responsible for managing transaction coordination/state
 for transactional producers.
 </details>
 
@@ -1833,7 +1833,7 @@ for transactional producers.
 
 <details>
 <summary>Answer</summary>
-A transactional visibility boundary used by consumers, particularly read_committed, to determine which records are 
+A transactional visibility boundary used by consumers, particularly read_committed, to determine which records are
 safely visible with respect to open transactions.
 </details>
 

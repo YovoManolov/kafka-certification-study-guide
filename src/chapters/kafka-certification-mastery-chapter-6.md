@@ -30,9 +30,10 @@
 - [Chapter 7 — Kafka Administration and Operations Deep Dive](#chapter-7-kafka-administration-and-operations-deep-dive)
 
 ---
+
 # Chapter 6 — Kafka Storage, Replication, ISR and Fault Tolerance
 
-> Certification track: CCDAK + CCAAK  
+> Certification track: CCDAK + CCAAK
 > Reference foundation: *Kafka: The Definitive Guide*, 2nd Edition
 
 ---

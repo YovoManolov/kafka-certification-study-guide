@@ -29,7 +29,6 @@ Welcome to the Kafka Certification Mastery repository. Below is a comprehensive 
 - [**Chapter 16 — Kafka Transactions & Exactly-Once Semantics Deep Dive**](src/chapters/kafka-certification-mastery-chapter-16.md)
 
 
-
 ## Supplementary Resources
 
 - [**Kafka Internal Architecture**](src/supplementary-resources/kafka-certification-mastery-internal-architecture.md)
@@ -48,3 +47,13 @@ Welcome to the Kafka Certification Mastery repository. Below is a comprehensive 
 - [**Mock Exam 7**](mocks/mock-exam-7.md)
 - [**Mock Exam 8**](mocks/mock-exam-8.md)
 
+## Interactive exam center
+
+The mock exams can be taken as browser-based practice exams: timed sessions, one-question-at-a-time navigation, flagging, question grid, final review, score calculation, and answer review. Attempts are stored locally in the browser; no answer data is sent to a server.
+
+Open `src/exams/index.md` when developing locally, or the **Interactive Mock Exams** section on the published GitHub Pages site.
+
+
+## Interactive certification platform
+
+The GitHub Pages site includes timed, one-question-at-a-time mock exams with flagging, final review, answer reveal after submission, local attempt history, and a browser-only progress dashboard.

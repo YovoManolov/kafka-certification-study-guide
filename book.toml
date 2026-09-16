@@ -2,3 +2,7 @@
 title = "Kafka Certification Study Guide"
 authors = ["Aymen Ben Hmida"]
 language = "en"
+
+[output.html]
+additional-css = ["theme/exam.css"]
+additional-js = ["src/exam.js"]
